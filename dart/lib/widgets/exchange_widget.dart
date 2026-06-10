@@ -189,26 +189,27 @@ Widget buildBlockHeader({
             ),
           ),
           if (subtitle != null)
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              alignment: Alignment.centerLeft,
-              curve: Curves.easeInOut,
-              child: expanded
-                  ? const SizedBox(width: 0)
-                  : Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: theme.fontSizeSm - 1,
-                          color: theme.textTertiary,
+            Flexible(
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.centerLeft,
+                curve: Curves.easeInOut,
+                child: expanded
+                    ? const SizedBox(width: 0)
+                    : Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: theme.fontSizeSm - 1,
+                            color: theme.textTertiary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+              ),
             ),
-          const Spacer(),
           if (showChevron)
             AnimatedRotation(
               turns: expanded ? 0.25 : 0,
