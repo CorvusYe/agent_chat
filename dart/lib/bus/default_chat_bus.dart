@@ -190,6 +190,16 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 e.autoApproved ||
                 _trustedTools.contains(e.toolName) ||
                 _globalAlwaysAllow == e.toolName;
+            BlockStatus effectiveStatus;
+            if (e.requiresConfirm && !autoApproved) {
+              effectiveStatus = BlockStatus.pending;
+            } else if (autoApproved &&
+                (_trustedTools.contains(e.toolName) ||
+                    _globalAlwaysAllow == e.toolName)) {
+              effectiveStatus = BlockStatus.alwaysAllowed;
+            } else {
+              effectiveStatus = BlockStatus.running;
+            }
             pendingBlocks.add(
               ChatBlock(
                 id: e.blockId,
@@ -199,9 +209,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 requiresConfirm: e.requiresConfirm && !autoApproved,
                 canAlwaysAllow: e.canAlwaysAllow,
                 description: e.description,
-                status: e.requiresConfirm && !autoApproved
-                    ? BlockStatus.pending
-                    : BlockStatus.running,
+                status: effectiveStatus,
                 startTime: DateTime.now(),
               ),
             );
