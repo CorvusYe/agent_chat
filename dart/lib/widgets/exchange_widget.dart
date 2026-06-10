@@ -38,34 +38,23 @@ class ExchangeWidget extends StatelessWidget {
     final theme = ChatTheme.of(context);
     final expandedIndex = blocks.length - 1;
 
-    return Stack(
-      children: [
-        // 竖线
-        Positioned(
-          left: 4,
-          top: 12,
-          bottom: 8,
-          child: Container(width: 2, color: theme.border),
-        ),
-        // blocks
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: blocks.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final block = entry.value;
-            final isLast = idx == expandedIndex;
-            return _BlockTimelineItem(
-              block: block,
-              bus: bus,
-              exchange: exchange,
-              isExpanded: isLast,
-              showDotColor: dotColorFor(block, theme),
-              headerColor: headerColorFor(block, theme),
-            );
-          }).toList(),
-        ),
-      ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: blocks.asMap().entries.map((entry) {
+        final idx = entry.key;
+        final block = entry.value;
+        final isLast = idx == expandedIndex;
+        return _BlockTimelineItem(
+          block: block,
+          bus: bus,
+          exchange: exchange,
+          isExpanded: isLast,
+          showDotColor: dotColorFor(block, theme),
+          headerColor: headerColorFor(block, theme),
+          isLastBlock: isLast,
+        );
+      }).toList(),
     );
   }
 }
@@ -76,6 +65,8 @@ class ExchangeWidget extends StatelessWidget {
 
 Color dotColorFor(ChatBlock block, ChatTheme theme) {
   if (block.status == BlockStatus.cancelled) return theme.error;
+  if (block.status == BlockStatus.alwaysAllowed) return theme.success;
+  if (block.status == BlockStatus.approved) return theme.accent;
   if (block.type == BlockType.thinking) return theme.dotThinking;
   if (block.type == BlockType.tool) return theme.dotTool;
   if (block.type == BlockType.content) return theme.dotContent;
@@ -84,7 +75,6 @@ Color dotColorFor(ChatBlock block, ChatTheme theme) {
 }
 
 Color headerColorFor(ChatBlock block, ChatTheme theme) {
-  if (block.status == BlockStatus.cancelled) return theme.error;
   if (block.type == BlockType.thinking) return theme.headerThinking;
   if (block.type == BlockType.tool) return theme.headerTool;
   if (block.type == BlockType.content) return theme.headerContent;
@@ -109,34 +99,25 @@ Widget buildExchangeTimeline(
 
   final expandedIndex = allBlocks.length - 1;
 
-  return Stack(
-    children: [
-      Positioned(
-        left: 4,
-        top: 12,
-        bottom: 8,
-        child: Container(width: 2, color: theme.border),
-      ),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: allBlocks.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final block = entry.value;
-          return _BlockTimelineItem(
-            key: blockKeys?[idx],
-            block: block,
-            bus: bus,
-            exchange: exchange,
-            isExpanded: idx == expandedIndex,
-            showDotColor: dotColorFor(block, theme),
-            headerColor: headerColorFor(block, theme),
-            collapsed: collapsedBlockIds?.contains(block.id) ?? false,
-            onCollapsedChanged: onCollapsedChanged,
-          );
-        }).toList(),
-      ),
-    ],
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: allBlocks.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final block = entry.value;
+      return _BlockTimelineItem(
+        key: blockKeys?[idx],
+        block: block,
+        bus: bus,
+        exchange: exchange,
+        isExpanded: idx == expandedIndex,
+        showDotColor: dotColorFor(block, theme),
+        headerColor: headerColorFor(block, theme),
+        collapsed: collapsedBlockIds?.contains(block.id) ?? false,
+        onCollapsedChanged: onCollapsedChanged,
+        isLastBlock: idx == expandedIndex,
+      );
+    }).toList(),
   );
 }
 
@@ -385,6 +366,7 @@ class _BlockTimelineItem extends StatefulWidget {
   final Color headerColor;
   final bool collapsed;
   final void Function(String blockId, bool expanded)? onCollapsedChanged;
+  final bool isLastBlock;
 
   const _BlockTimelineItem({
     super.key,
@@ -396,6 +378,7 @@ class _BlockTimelineItem extends StatefulWidget {
     required this.headerColor,
     this.collapsed = false,
     this.onCollapsedChanged,
+    this.isLastBlock = false,
   });
 
   @override
@@ -459,64 +442,81 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
 
     return Padding(
       padding: EdgeInsets.only(left: theme.spacingLg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          // 折叠/展开头部 — outlined dot + 对齐竖线
-          Stack(
-            clipBehavior: Clip.none,
+          // 纵向线段 — 使用与圆点一致的状态色
+          Positioned(
+            left: -12,
+            top: 12,
+            bottom: widget.isLastBlock ? 8 : 0,
+            child: Container(width: 2, color: widget.showDotColor),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Positioned(
-                left: -17,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.bgPrimary,
-                      border: Border.all(color: widget.showDotColor, width: 2),
+              // 折叠/展开头部 — outlined dot
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: -17,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.bgPrimary,
+                          border: Border.all(
+                            color: widget.showDotColor,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _handleToggle,
+                    child: buildBlockHeader(
+                      context: context,
+                      icon: _iconFor(widget.block),
+                      label: _labelFor(widget.block),
+                      color: widget.headerColor,
+                      theme: theme,
+                      showChevron: true,
+                      expanded: _expanded,
+                      startTime: widget.block.startTime,
+                      elapsed: widget.block.elapsed,
+                    ),
+                  ),
+                ],
+              ),
+              // 内容
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: theme.contentMaxHeight,
+                  ),
+                  child: SingleChildScrollView(
+                    child: BlockRegistry.build(
+                      context,
+                      widget.block,
+                      widget.bus,
+                      widget.exchange,
                     ),
                   ),
                 ),
-              ),
-              InkWell(
-                onTap: _handleToggle,
-                child: buildBlockHeader(
-                  context: context,
-                  icon: _iconFor(widget.block),
-                  label: _labelFor(widget.block),
-                  color: widget.headerColor,
-                  theme: theme,
-                  showChevron: true,
-                  expanded: _expanded,
-                  startTime: widget.block.startTime,
-                  elapsed: widget.block.elapsed,
-                ),
+                crossFadeState: _expanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
               ),
             ],
-          ),
-          // 内容
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: theme.contentMaxHeight),
-              child: SingleChildScrollView(
-                child: BlockRegistry.build(
-                  context,
-                  widget.block,
-                  widget.bus,
-                  widget.exchange,
-                ),
-              ),
-            ),
-            crossFadeState: _expanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
           ),
         ],
       ),

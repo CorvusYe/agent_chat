@@ -402,9 +402,8 @@ class _ConfirmGate extends StatelessWidget {
                   Expanded(
                     child: _ConfirmButton(
                       label: '始终允许',
-                      color: theme.btnSecondaryBg,
-                      textColor: theme.accentLight,
-                      borderColor: theme.borderAccent,
+                      color: theme.success,
+                      textColor: Colors.white,
                       onPressed: () => bus.confirmTool(
                         exchangeId,
                         block.toolName ?? '',

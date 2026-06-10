@@ -17,7 +17,15 @@ class BlockType {
   String toString() => 'BlockType($name)';
 }
 
-enum BlockStatus { pending, running, approved, cancelled, completed, error }
+enum BlockStatus {
+  pending,
+  running,
+  approved,
+  alwaysAllowed,
+  cancelled,
+  completed,
+  error,
+}
 
 class ChatBlock {
   final String id;

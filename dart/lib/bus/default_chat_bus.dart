@@ -87,7 +87,9 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     _updateBlockInExchange(
       exchangeId,
       toolName,
-      (b) => b.copyWith(status: BlockStatus.approved),
+      (b) => b.copyWith(
+        status: alwaysAllow ? BlockStatus.alwaysAllowed : BlockStatus.approved,
+      ),
     );
     _pendingConfirms.remove(exchangeId)?.complete();
     notifyListeners();
@@ -367,6 +369,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
   /// 在 pendingBlocks 或已刷新的 groups 中更新 block，并自动设置 elapsed。
   /// pendingBlocks 是当前未刷新的块列表（_processEventStream 中局部变量）。
   /// 仅当 block 处于 running/pending 状态时更新 elapsed，避免覆盖已冻结的终态值。
+  /// 已 cancelled 的 block 跳过所有后续更新，确保状态色持久不变。
   void _updateBlockSafe(
     String exchangeId,
     List<ChatBlock> pendingBlocks,
@@ -376,9 +379,15 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     final idx = pendingBlocks.indexWhere((b) => b.id == blockId);
 
     ChatBlock updateWithElapsed(ChatBlock b) {
+      if (b.status == BlockStatus.cancelled) return b;
       final transformed = transform(b);
       if (b.status == BlockStatus.running || b.status == BlockStatus.pending) {
         return _applyElapsed(transformed, blockId);
+      }
+      // 保留已批准/始终允许的状态，后续 completed 事件不覆盖
+      if (b.status == BlockStatus.approved ||
+          b.status == BlockStatus.alwaysAllowed) {
+        return transformed.copyWith(status: b.status);
       }
       return transformed;
     }
