@@ -40,7 +40,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ScrollController _scrollCtrl = ScrollController();
   bool _queueVisible = false;
   Timer? _statsTimer;
-  final Set<String> _userCollapsedBlockIds = {};
+  /// Blocks the user manually expanded — override auto-collapse.
+  final Set<String> _manuallyExpandedKeys = {};
+  /// Blocks the user manually collapsed — override auto-expand.
+  final Set<String> _manuallyCollapsedKeys = {};
 
   ChatBus get bus => widget.bus;
 
@@ -72,12 +75,34 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
+  /// Whether this block is the single latest block across all exchanges.
+  bool _isLatestBlock(ChatBlock block, Exchange exchange) {
+    for (final ex in bus.exchanges.reversed) {
+      for (final g in ex.groups.reversed) {
+        if (g.blocks.isNotEmpty) {
+          return '${exchange.id}_${block.id}' == '${ex.id}_${g.blocks.last.id}';
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Computed dynamically: collapsed state = default (latest=expanded) with manual overrides.
+  bool _isCollapsed(ChatBlock block, Exchange exchange) {
+    final key = '${exchange.id}_${block.id}';
+    if (_manuallyExpandedKeys.contains(key)) return false;
+    if (_manuallyCollapsedKeys.contains(key)) return true;
+    return !_isLatestBlock(block, exchange);
+  }
+
   void _onToggleCollapsed(String collapseKey, bool currentlyCollapsed) {
     setState(() {
       if (currentlyCollapsed) {
-        _userCollapsedBlockIds.remove(collapseKey);
+        _manuallyExpandedKeys.add(collapseKey);
+        _manuallyCollapsedKeys.remove(collapseKey);
       } else {
-        _userCollapsedBlockIds.add(collapseKey);
+        _manuallyCollapsedKeys.add(collapseKey);
+        _manuallyExpandedKeys.remove(collapseKey);
       }
     });
   }
@@ -175,8 +200,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ];
 
       for (final block in allBlocks) {
-        final collapseKey = '${exchange.id}_${block.id}';
-        final collapsed = _userCollapsedBlockIds.contains(collapseKey);
+        final collapsed = _isCollapsed(block, exchange);
         final innerSlivers = <Widget>[
           SliverPinnedHeader(
             child: _buildInlineHeader(context, block, exchange, theme),
@@ -242,10 +266,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// Extract first paragraph of block content for collapsed subtext.
+  String _firstParagraph(ChatBlock block) {
+    final text = block.toolResult ?? block.content ?? block.description ?? '';
+    if (text.isEmpty) return '';
+    for (final line in text.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isNotEmpty) {
+        return trimmed.length > 50 ? '${trimmed.substring(0, 50)}…' : trimmed;
+      }
+    }
+    return '';
+  }
+
   Widget _buildInlineHeader(BuildContext context, ChatBlock block, Exchange exchange, ChatTheme theme) {
     final collapseKey = '${exchange.id}_${block.id}';
-    final collapsed = _userCollapsedBlockIds.contains(collapseKey);
+    final collapsed = _isCollapsed(block, exchange);
     final dotColor = dotColorFor(block, theme);
+    final sub = collapsed ? _firstParagraph(block) : null;
 
     return SizedBox(
       height: 28.0,
@@ -277,6 +315,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 theme: theme,
                 showChevron: true,
                 expanded: !collapsed,
+                subtitle: sub,
               ),
             ),
           ],

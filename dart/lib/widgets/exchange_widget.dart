@@ -179,6 +179,7 @@ IconData iconForBlock(ChatBlock block) {
 }
 
 /// Shared block header row — used both in timeline and pinned header.
+/// [subtitle] shows when collapsed with smooth size animation.
 Widget buildBlockHeader({
   required BuildContext context,
   required IconData icon,
@@ -187,6 +188,7 @@ Widget buildBlockHeader({
   required ChatTheme theme,
   bool showChevron = false,
   bool expanded = false,
+  String? subtitle,
 }) {
   return Container(
     color: theme.bgPrimary,
@@ -205,6 +207,26 @@ Widget buildBlockHeader({
               letterSpacing: 0.24,
             ),
           ),
+          if (subtitle != null)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              alignment: Alignment.centerLeft,
+              curve: Curves.easeInOut,
+              child: expanded
+                  ? const SizedBox(width: 0)
+                  : Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: theme.fontSizeSm - 1,
+                          color: theme.textTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+            ),
           const Spacer(),
           if (showChevron)
             AnimatedRotation(
