@@ -90,6 +90,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double spacingMd;
   final double spacingLg;
   final double spacingXl;
+  final double spacingWindow;
+  final EdgeInsets blockPadding;
 
   // ═══════════════════════════════════════
   //  圆角
@@ -165,6 +167,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.spacingMd = 12,
     this.spacingLg = 16,
     this.spacingXl = 24,
+    this.spacingWindow = 12,
+    this.blockPadding = const EdgeInsets.fromLTRB(0, 4, 0, 4),
     // 圆角
     this.radiusSm = 2,
     this.radiusMd = 3,
@@ -285,6 +289,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? spacingMd,
     double? spacingLg,
     double? spacingXl,
+    double? spacingWindow,
+    EdgeInsets? blockPadding,
     double? radiusSm,
     double? radiusMd,
     double? radiusLg,
@@ -349,6 +355,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       spacingMd: spacingMd ?? this.spacingMd,
       spacingLg: spacingLg ?? this.spacingLg,
       spacingXl: spacingXl ?? this.spacingXl,
+      spacingWindow: spacingWindow ?? this.spacingWindow,
+      blockPadding: blockPadding ?? this.blockPadding,
       radiusSm: radiusSm ?? this.radiusSm,
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
@@ -418,6 +426,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       spacingMd: lerpDouble(spacingMd, other.spacingMd, t) ?? spacingMd,
       spacingLg: lerpDouble(spacingLg, other.spacingLg, t) ?? spacingLg,
       spacingXl: lerpDouble(spacingXl, other.spacingXl, t) ?? spacingXl,
+      spacingWindow: lerpDouble(spacingWindow, other.spacingWindow, t) ?? spacingWindow,
+      blockPadding: EdgeInsets.lerp(blockPadding, other.blockPadding, t) ?? blockPadding,
       radiusSm: lerpDouble(radiusSm, other.radiusSm, t) ?? radiusSm,
       radiusMd: lerpDouble(radiusMd, other.radiusMd, t) ?? radiusMd,
       radiusLg: lerpDouble(radiusLg, other.radiusLg, t) ?? radiusLg,

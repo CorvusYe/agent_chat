@@ -161,17 +161,13 @@ class _ThinkingBlockState extends State<_ThinkingBlock>
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          theme.spacingSm, 0, 0, theme.spacingXs),
-      child: Text(
-        _displayed.isEmpty ? (widget.block.content ?? '') : _displayed,
-        style: TextStyle(
+    return Text(
+      _displayed.isEmpty ? (widget.block.content ?? '') : _displayed,
+      style: TextStyle(
           color: theme.textSecondary,
           fontSize: theme.fontSizeMd,
           height: 1.5,
         ),
-      ),
     );
   }
 }
@@ -190,8 +186,6 @@ class _ToolBlock extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      margin: EdgeInsets.fromLTRB(
-          theme.spacingXs, theme.spacingXs, 0, theme.spacingXs),
       decoration: BoxDecoration(
         color: theme.bgCard,
         border: Border.all(color: theme.borderLight),
@@ -271,20 +265,17 @@ class _ContentBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          theme.spacingSm, 0, 0, theme.spacingSm),
-      child: Text(
-        block.content ?? '',
-        style: TextStyle(
-          color: theme.textContent,
-          fontSize: theme.fontSizeLg,
-          height: 1.6,
-        ),
+    return Text(
+      block.content ?? '',
+      style: TextStyle(
+        color: theme.textContent,
+        fontSize: theme.fontSizeLg,
+        height: 1.6,
       ),
     );
   }
 }
+
 
 // ═══════════════════════════════════════════════════════
 //  Confirm Gate
@@ -305,8 +296,6 @@ class _ConfirmGate extends StatelessWidget {
     final theme = ChatTheme.of(context);
 
     return Container(
-      margin: EdgeInsets.fromLTRB(
-          theme.spacingXs, theme.spacingXs, 0, theme.spacingXs),
       decoration: BoxDecoration(
         color: theme.bgWarning,
         border: Border.all(color: theme.borderWarning),

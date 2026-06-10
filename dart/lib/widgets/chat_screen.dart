@@ -146,12 +146,15 @@ class _ChatScreenState extends State<ChatScreen>
       data: ThemeData(extensions: [chatTheme], brightness: Brightness.dark),
       child: Scaffold(
         backgroundColor: chatTheme.bgPrimary,
-        body: Column(
-          children: [
-            Expanded(child: _buildMessages(chatTheme)),
-            StatsBar(elapsed: bus.elapsed, totalTokens: bus.totalTokens),
-            _buildInput(chatTheme),
-          ],
+        body: Padding(
+          padding: EdgeInsets.all(chatTheme.spacingWindow),
+          child: Column(
+            children: [
+              Expanded(child: _buildMessages(chatTheme)),
+              StatsBar(elapsed: bus.elapsed, totalTokens: bus.totalTokens),
+              _buildInput(chatTheme),
+            ],
+          ),
         ),
       ),
     );
@@ -255,19 +258,19 @@ class _ChatScreenState extends State<ChatScreen>
     double viewportHeight,
   ) {
     return Padding(
-      padding: EdgeInsets.only(left: theme.spacingLg),
+      padding: theme.blockPadding,
       child: Stack(
         children: [
           // 左侧竖线
           Positioned(
             left: 4,
             top: 0,
-            bottom: 8,
-            child: Container(width: 2, color: theme.border),
+            bottom: 0,
+            child: Container(width: 2, color: dotColorFor(block, theme)),
           ),
           // 内容
           Padding(
-            padding: EdgeInsets.only(left: 10),
+            padding: EdgeInsets.only(left: 20),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: viewportHeight * 0.618),
               child: SingleChildScrollView(
