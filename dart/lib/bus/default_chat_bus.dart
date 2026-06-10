@@ -28,13 +28,16 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
   void Function(String exchangeId, String blockId, Duration elapsed)?
   onBlockCompleted;
 
+  /// 中断回调。用户取消工具调用时触发，example 层应在此中断 AI 事件流。
+  VoidCallback? onInterrupt;
+
   bool _disposed = false;
 
   int _nextId = 0;
   int _totalTokens = 0;
   String _genId() => 'ex_${DateTime.now().millisecondsSinceEpoch}_${_nextId++}';
 
-  DefaultChatBus({this.onGenerate, this.onBlockCompleted});
+  DefaultChatBus({this.onGenerate, this.onBlockCompleted, this.onInterrupt});
 
   // ── ChatBus ──
 
@@ -103,6 +106,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
       (b) => b.copyWith(status: BlockStatus.cancelled),
     );
     _pendingConfirms.remove(exchangeId)?.complete();
+    onInterrupt?.call();
     notifyListeners();
   }
 
@@ -305,11 +309,42 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
           final completer = Completer<void>();
           _pendingConfirms[exchangeId] = completer;
           await completer.future;
-          _updateExchange(
-            exchangeId,
-            (ex) => ex.copyWith(status: ExchangeStatus.processing),
-          );
-          notifyListeners();
+
+          // 如果工具被取消，检查是否还有同级活动 block。
+          // 有 → 仅取消当前 block，同级继续运行；
+          // 无 → exchange 也设 cancelled。
+          final exIdx = _exchanges.indexWhere((e) => e.id == exchangeId);
+          if (exIdx != -1) {
+            final groups = _exchanges[exIdx].groups;
+            final hasCancelled = groups
+                .expand((g) => g.blocks)
+                .any((b) => b.status == BlockStatus.cancelled);
+            if (hasCancelled) {
+              final hasActive = groups
+                  .expand((g) => g.blocks)
+                  .any(
+                    (b) =>
+                        b.status == BlockStatus.pending ||
+                        b.status == BlockStatus.running,
+                  );
+              if (!hasActive) {
+                _updateExchange(
+                  exchangeId,
+                  (ex) => ex.copyWith(status: ExchangeStatus.cancelled),
+                );
+                notifyListeners();
+              }
+            }
+          }
+
+          if (exIdx == -1 ||
+              _exchanges[exIdx].status != ExchangeStatus.cancelled) {
+            _updateExchange(
+              exchangeId,
+              (ex) => ex.copyWith(status: ExchangeStatus.processing),
+            );
+            notifyListeners();
+          }
         }
       }
 
@@ -317,7 +352,12 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
       if (pendingBlocks.isNotEmpty) {
         _flushGroup(exchangeId, pendingBlocks);
       }
-      _completeExchange(exchangeId);
+      final isCancelled = _exchanges
+          .where((e) => e.id == exchangeId)
+          .any((e) => e.status == ExchangeStatus.cancelled);
+      if (!isCancelled) {
+        _completeExchange(exchangeId);
+      }
     } catch (e) {
       _updateExchange(
         exchangeId,

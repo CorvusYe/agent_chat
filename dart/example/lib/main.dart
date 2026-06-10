@@ -20,10 +20,14 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     bus = ChatBus.withDecorators(
-      impl: DefaultChatBus(onGenerate: _mockAI),
+      impl: DefaultChatBus(onGenerate: _mockAI, onInterrupt: _onInterrupt),
       decorators: [(inner) => _QueueInputDecorator(inner)],
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => _autoDemo());
+  }
+
+  void _onInterrupt() {
+    _aiCancelled = true;
   }
 
   Future<void> _autoDemo() async {
@@ -141,6 +145,7 @@ class _QueueInputDecorator with ChangeNotifier implements ChatBus {
 // ═══════════════════════════════════════════════════════
 
 final _rand = Random(42);
+bool _aiCancelled = false;
 final _toolPool = <_ToolEntry>[
   _ToolEntry(
     'read_file',
@@ -177,6 +182,7 @@ class _ToolEntry {
 }
 
 Stream<ExchangeEvent> _mockAI(String text) async* {
+  _aiCancelled = false;
   final id = 'ex_${DateTime.now().millisecondsSinceEpoch}';
 
   // 1. 思考
@@ -184,6 +190,7 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
   const thinkText = '好的，让我来分析你的请求……';
   for (var i = 0; i < thinkText.length; i += 4) {
     await Future.delayed(const Duration(milliseconds: 20));
+    if (_aiCancelled) return;
     yield ThinkingDelta(
       id,
       'think_1',
@@ -193,6 +200,7 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
       ),
     );
   }
+  if (_aiCancelled) return;
   yield ThinkingCompleted(id, 'think_1', thinkText);
   yield TokenCount(id, 156);
 
@@ -206,6 +214,7 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
     }
     used.add(idx);
     final entry = _toolPool[idx];
+    if (_aiCancelled) return;
     yield ToolCallStarted(
       id,
       'tool_$i',
@@ -215,6 +224,7 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
       description: entry.requiresConfirm ? '将要执行以下命令' : null,
     );
   }
+  if (_aiCancelled) return;
   yield ParallelBoundary(id);
   yield TokenCount(id, toolCount * 89);
 
@@ -222,20 +232,24 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
   final usedList = used.toList();
   for (var i = 0; i < toolCount; i++) {
     await Future.delayed(Duration(milliseconds: 400 + _rand.nextInt(1000)));
+    if (_aiCancelled) return;
     yield ToolCallCompleted(id, 'tool_$i', _toolPool[usedList[i]].result);
   }
 
   // 3. 回答
+  if (_aiCancelled) return;
   yield ContentStarted(id, 'content_1');
   const reply = '以上是执行结果。如果需要进一步处理请告诉我。';
   for (var i = 0; i < reply.length; i += 3) {
     await Future.delayed(const Duration(milliseconds: 15));
+    if (_aiCancelled) return;
     yield ContentDelta(
       id,
       'content_1',
       reply.substring(0, i + 3 > reply.length ? reply.length : i + 3),
     );
   }
+  if (_aiCancelled) return;
   yield ContentCompleted(id, 'content_1', reply);
   yield TokenCount(id, 234);
 }
