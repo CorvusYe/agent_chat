@@ -140,10 +140,24 @@ class _ChatScreenState extends State<ChatScreen>
   }
 
   /// Computed dynamically: collapsed state = default (latest=expanded) with manual overrides.
+  /// Parallel blocks in the same group stay expanded until all complete.
   bool _isCollapsed(ChatBlock block, Exchange exchange) {
     final key = '${exchange.id}_${block.id}';
     if (_manuallyExpandedKeys.contains(key)) return false;
     if (_manuallyCollapsedKeys.contains(key)) return true;
+
+    // If any sibling in the same group is still running, keep expanded
+    for (final group in exchange.groups) {
+      if (group.blocks.any((b) => b.id == block.id)) {
+        if (group.blocks.any((b) =>
+            b.status == BlockStatus.running ||
+            b.status == BlockStatus.pending)) {
+          return false;
+        }
+        break;
+      }
+    }
+
     return !_isLatestBlock(block, exchange);
   }
 
