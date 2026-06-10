@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/exchange.dart';
 import '../models/chat_block.dart';
@@ -170,7 +171,17 @@ Widget buildBlockHeader({
   bool showChevron = false,
   bool expanded = false,
   String? subtitle,
+  DateTime? startTime,
+  Duration? elapsed,
 }) {
+  String? elapsedText;
+  if (elapsed != null) {
+    elapsedText = '${(elapsed.inMilliseconds / 1000).toStringAsFixed(1)}s';
+  } else if (startTime != null) {
+    elapsedText =
+        '${(DateTime.now().difference(startTime).inMilliseconds / 1000).toStringAsFixed(1)}s';
+  }
+
   return Container(
     color: theme.bgPrimary,
     child: Padding(
@@ -188,6 +199,17 @@ Widget buildBlockHeader({
               letterSpacing: 0.24,
             ),
           ),
+          if (elapsedText != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                elapsedText,
+                style: TextStyle(
+                  fontSize: theme.fontSizeSm - 1,
+                  color: theme.textTertiary,
+                ),
+              ),
+            ),
           if (subtitle != null)
             Flexible(
               child: AnimatedSize(
@@ -382,11 +404,13 @@ class _BlockTimelineItem extends StatefulWidget {
 
 class _BlockTimelineItemState extends State<_BlockTimelineItem> {
   bool _expanded = true;
+  Timer? _elapsedTimer;
 
   @override
   void initState() {
     super.initState();
     _expanded = !widget.collapsed;
+    _updateElapsedTimer();
   }
 
   @override
@@ -397,6 +421,29 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
     }
     if (widget.collapsed != old.collapsed && !widget.isExpanded) {
       _expanded = !widget.collapsed;
+    }
+    if (widget.block.status != old.block.status ||
+        widget.block.startTime != old.block.startTime) {
+      _updateElapsedTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _elapsedTimer?.cancel();
+    super.dispose();
+  }
+
+  void _updateElapsedTimer() {
+    final status = widget.block.status;
+    if (widget.block.startTime != null &&
+        (status == BlockStatus.running || status == BlockStatus.pending)) {
+      _elapsedTimer ??= Timer.periodic(const Duration(milliseconds: 200), (_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      _elapsedTimer?.cancel();
+      _elapsedTimer = null;
     }
   }
 
@@ -446,6 +493,8 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
                   theme: theme,
                   showChevron: true,
                   expanded: _expanded,
+                  startTime: widget.block.startTime,
+                  elapsed: widget.block.elapsed,
                 ),
               ),
             ],

@@ -101,7 +101,8 @@ class _ChatScreenState extends State<ChatScreen>
       0,
       (sum, ex) => sum + ex.groups.fold<int>(0, (s, g) => s + g.blocks.length),
     );
-    final shouldScroll = exCount > _lastExchangeCount || blockCount > _lastBlockCount;
+    final shouldScroll =
+        exCount > _lastExchangeCount || blockCount > _lastBlockCount;
     _lastExchangeCount = exCount;
     _lastBlockCount = blockCount;
     setState(() {});
@@ -149,9 +150,11 @@ class _ChatScreenState extends State<ChatScreen>
     // If any sibling in the same group is still running, keep expanded
     for (final group in exchange.groups) {
       if (group.blocks.any((b) => b.id == block.id)) {
-        if (group.blocks.any((b) =>
-            b.status == BlockStatus.running ||
-            b.status == BlockStatus.pending)) {
+        if (group.blocks.any(
+          (b) =>
+              b.status == BlockStatus.running ||
+              b.status == BlockStatus.pending,
+        )) {
           return false;
         }
         break;
@@ -200,7 +203,7 @@ class _ChatScreenState extends State<ChatScreen>
           child: Column(
             children: [
               Expanded(child: _buildMessages(chatTheme)),
-              StatsBar(elapsed: bus.elapsed, totalTokens: bus.totalTokens),
+              StatsBar(totalTokens: bus.totalTokens),
               _buildInput(chatTheme),
             ],
           ),
@@ -390,6 +393,8 @@ class _ChatScreenState extends State<ChatScreen>
                 showChevron: true,
                 expanded: !collapsed,
                 subtitle: sub,
+                startTime: block.startTime,
+                elapsed: block.elapsed,
               ),
             ),
           ],

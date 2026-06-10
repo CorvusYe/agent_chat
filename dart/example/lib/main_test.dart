@@ -106,6 +106,8 @@ class _QueueInputDecorator with ChangeNotifier implements ChatBus {
   @override
   void toggleQueue() => _inner.toggleQueue();
   @override
+  void addTokens(int count) => _inner.addTokens(count);
+  @override
   void acceptEvents(exchangeId, events) =>
       _inner.acceptEvents(exchangeId, events);
   @override
@@ -175,6 +177,7 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
     );
   }
   yield ThinkingCompleted(id, 'think_1', thinkText);
+  yield TokenCount(id, 156);
 
   final toolCount = _rand.nextInt(3) + 1;
   final used = <int>{};
@@ -195,6 +198,7 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
     );
   }
   yield ParallelBoundary(id);
+  yield TokenCount(id, toolCount * 89);
 
   final usedList = used.toList();
   for (var i = 0; i < toolCount; i++) {
@@ -213,4 +217,5 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
     );
   }
   yield ContentCompleted(id, 'content_1', reply);
+  yield TokenCount(id, 234);
 }

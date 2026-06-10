@@ -1,49 +1,75 @@
 import 'package:flutter/material.dart';
 import '../theme/chat_theme.dart';
 
-/// 统计栏 — 显示耗时和 token 数。
-class StatsBar extends StatelessWidget {
-  final Duration? elapsed;
+/// 统计栏 — 显示 token 数。
+class StatsBar extends StatefulWidget {
   final int totalTokens;
 
-  const StatsBar({super.key, this.elapsed, this.totalTokens = 0});
+  const StatsBar({super.key, this.totalTokens = 0});
+
+  @override
+  State<StatsBar> createState() => _StatsBarState();
+}
+
+class _StatsBarState extends State<StatsBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  int _from = 0;
+  int _to = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 600),
+        )..addListener(() {
+          if (mounted) setState(() {});
+        });
+    _to = widget.totalTokens;
+  }
+
+  @override
+  void didUpdateWidget(StatsBar old) {
+    super.didUpdateWidget(old);
+    if (old.totalTokens != widget.totalTokens) {
+      _from = _displayed;
+      _to = widget.totalTokens;
+      _ctrl.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  int get _displayed {
+    if (_ctrl.isAnimating || _ctrl.value > 0) {
+      return _from + ((_to - _from) * _ctrl.value).round();
+    }
+    return _to;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    final visible = elapsed != null;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      height: visible ? theme.spacingXl : 0,
-      child: visible
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _StatItem(
-                  icon: Icons.access_time,
-                  label:
-                      '${(elapsed!.inMilliseconds / 1000).toStringAsFixed(1)}s',
-                  color: theme.statColor,
-                ),
-                SizedBox(width: theme.spacingMd),
-                _StatItem(
-                  icon: Icons.timeline,
-                  label: _formatNumber(totalTokens),
-                  color: theme.statColor,
-                ),
-              ],
-            )
-          : null,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        _StatItem(
+          icon: Icons.timeline,
+          label: _formatNumber(_displayed),
+          color: theme.statColor,
+        ),
+      ],
     );
   }
 
-  String _formatNumber(int n) {
-    if (n >= 1000) {
-      return '${(n / 1000).toStringAsFixed(n >= 10000 ? 0 : 1)}k';
-    }
-    return n.toString();
-  }
+  String _formatNumber(int n) => n.toString();
 }
 
 class _StatItem extends StatelessWidget {

@@ -30,6 +30,8 @@ class ChatBlock {
   final bool requiresConfirm;
   final bool canAlwaysAllow;
   final BlockStatus status;
+  final Duration? elapsed;
+  final DateTime? startTime;
 
   const ChatBlock({
     required this.id,
@@ -42,6 +44,8 @@ class ChatBlock {
     this.requiresConfirm = false,
     this.canAlwaysAllow = true,
     this.status = BlockStatus.pending,
+    this.elapsed,
+    this.startTime,
   });
 
   ChatBlock copyWith({
@@ -49,6 +53,7 @@ class ChatBlock {
     String? toolResult,
     BlockStatus? status,
     Map<String, dynamic>? toolArgs,
+    Duration? elapsed,
   }) {
     return ChatBlock(
       id: id,
@@ -61,6 +66,8 @@ class ChatBlock {
       requiresConfirm: requiresConfirm,
       canAlwaysAllow: canAlwaysAllow,
       status: status ?? this.status,
+      elapsed: elapsed ?? this.elapsed,
+      startTime: startTime,
     );
   }
 

@@ -74,6 +74,11 @@ class ParallelBoundary extends ExchangeEvent {
   const ParallelBoundary(super.exchangeId);
 }
 
+class TokenCount extends ExchangeEvent {
+  final int count;
+  const TokenCount(super.exchangeId, this.count);
+}
+
 class ExchangeError extends ExchangeEvent {
   final String errorMessage;
   const ExchangeError(super.exchangeId, this.errorMessage);

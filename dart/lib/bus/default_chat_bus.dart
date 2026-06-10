@@ -19,16 +19,22 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
   final Set<String> _activeExchanges = {};
   DateTime? _startTime;
   Duration? _lastElapsed;
+  final Map<String, DateTime> _blockStartTimes = {};
 
   /// AI 事件生成回调。设置后 sendMessage 自动调用此回调。
   Stream<ExchangeEvent> Function(String text)? onGenerate;
 
+  /// Block 完成回调。每当 block 状态变为 completed 时调用，回传 elapsed 时间。
+  void Function(String exchangeId, String blockId, Duration elapsed)?
+  onBlockCompleted;
+
   bool _disposed = false;
 
   int _nextId = 0;
+  int _totalTokens = 0;
   String _genId() => 'ex_${DateTime.now().millisecondsSinceEpoch}_${_nextId++}';
 
-  DefaultChatBus({this.onGenerate});
+  DefaultChatBus({this.onGenerate, this.onBlockCompleted});
 
   // ── ChatBus ──
 
@@ -48,7 +54,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
   int get queueCount => _queue.length;
 
   @override
-  int get totalTokens => 0;
+  int get totalTokens => _totalTokens;
 
   @override
   Duration? get elapsed => _startTime != null
@@ -104,6 +110,12 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
   }
 
   @override
+  void addTokens(int count) {
+    _totalTokens += count;
+    notifyListeners();
+  }
+
+  @override
   void acceptEvents(String exchangeId, Stream<ExchangeEvent> events) {
     _processEventStream(exchangeId, events);
   }
@@ -120,6 +132,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     _pendingConfirms.clear();
     _exchanges.clear();
     _queue.clear();
+    _blockStartTimes.clear();
     super.dispose();
   }
 
@@ -138,12 +151,14 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
       await for (final event in stream) {
         switch (event) {
           case ThinkingStarted e:
+            _blockStartTimes[e.blockId] = DateTime.now();
             pendingBlocks.add(
               ChatBlock(
                 id: e.blockId,
                 type: BlockType.thinking,
                 content: '',
                 status: BlockStatus.running,
+                startTime: DateTime.now(),
               ),
             );
 
@@ -165,8 +180,10 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: BlockStatus.completed,
               ),
             );
+            _notifyBlockCompleted(exchangeId, e.blockId);
 
           case ToolCallStarted e:
+            _blockStartTimes[e.blockId] = DateTime.now();
             final autoApproved =
                 e.autoApproved ||
                 _trustedTools.contains(e.toolName) ||
@@ -183,6 +200,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: e.requiresConfirm && !autoApproved
                     ? BlockStatus.pending
                     : BlockStatus.running,
+                startTime: DateTime.now(),
               ),
             );
 
@@ -206,14 +224,17 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: BlockStatus.completed,
               ),
             );
+            _notifyBlockCompleted(exchangeId, e.blockId);
 
           case ContentStarted e:
+            _blockStartTimes[e.blockId] = DateTime.now();
             pendingBlocks.add(
               ChatBlock(
                 id: e.blockId,
                 type: BlockType.content,
                 content: '',
                 status: BlockStatus.running,
+                startTime: DateTime.now(),
               ),
             );
 
@@ -235,6 +256,10 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: BlockStatus.completed,
               ),
             );
+            _notifyBlockCompleted(exchangeId, e.blockId);
+
+          case TokenCount e:
+            _totalTokens += e.count;
 
           case ParallelBoundary _:
             _flushGroup(exchangeId, pendingBlocks);
@@ -316,6 +341,13 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     );
   }
 
+  void _notifyBlockCompleted(String exchangeId, String blockId) {
+    final start = _blockStartTimes[blockId];
+    if (start != null && onBlockCompleted != null) {
+      onBlockCompleted!(exchangeId, blockId, DateTime.now().difference(start));
+    }
+  }
+
   void _updateBlockById(
     String exchangeId,
     String blockId,
@@ -332,8 +364,9 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     });
   }
 
-  /// 在 pendingBlocks 或已刷新的 groups 中更新 block。
+  /// 在 pendingBlocks 或已刷新的 groups 中更新 block，并自动设置 elapsed。
   /// pendingBlocks 是当前未刷新的块列表（_processEventStream 中局部变量）。
+  /// 仅当 block 处于 running/pending 状态时更新 elapsed，避免覆盖已冻结的终态值。
   void _updateBlockSafe(
     String exchangeId,
     List<ChatBlock> pendingBlocks,
@@ -341,11 +374,26 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     ChatBlock Function(ChatBlock) transform,
   ) {
     final idx = pendingBlocks.indexWhere((b) => b.id == blockId);
-    if (idx != -1) {
-      pendingBlocks[idx] = transform(pendingBlocks[idx]);
-    } else {
-      _updateBlockById(exchangeId, blockId, transform);
+
+    ChatBlock updateWithElapsed(ChatBlock b) {
+      final transformed = transform(b);
+      if (b.status == BlockStatus.running || b.status == BlockStatus.pending) {
+        return _applyElapsed(transformed, blockId);
+      }
+      return transformed;
     }
+
+    if (idx != -1) {
+      pendingBlocks[idx] = updateWithElapsed(pendingBlocks[idx]);
+    } else {
+      _updateBlockById(exchangeId, blockId, updateWithElapsed);
+    }
+  }
+
+  ChatBlock _applyElapsed(ChatBlock block, String blockId) {
+    final start = _blockStartTimes[blockId];
+    if (start == null) return block;
+    return block.copyWith(elapsed: DateTime.now().difference(start));
   }
 
   void _updateBlockInExchange(
@@ -359,7 +407,8 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
           if (b.toolName == toolName &&
               b.requiresConfirm &&
               b.status == BlockStatus.pending) {
-            return transform(b);
+            final transformed = transform(b);
+            return _applyElapsed(transformed, transformed.id);
           }
           return b;
         }).toList();

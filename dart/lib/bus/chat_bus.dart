@@ -23,6 +23,9 @@ abstract class ChatBus implements Listenable {
   void cancelTool(String exchangeId, String toolName);
   void toggleQueue();
 
+  // ── Token API（example 层调用） ──
+  void addTokens(int count);
+
   // ── AI 事件入口 ──
   void acceptEvents(String exchangeId, Stream<ExchangeEvent> events);
 
