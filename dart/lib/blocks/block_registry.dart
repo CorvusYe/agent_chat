@@ -120,59 +120,15 @@ Widget _defaultConfirmBuilder(
 //  Thinking Block
 // ═══════════════════════════════════════════════════════
 
-class _ThinkingBlock extends StatefulWidget {
+class _ThinkingBlock extends StatelessWidget {
   final ChatBlock block;
   const _ThinkingBlock({required this.block});
-
-  @override
-  State<_ThinkingBlock> createState() => _ThinkingBlockState();
-}
-
-class _ThinkingBlockState extends State<_ThinkingBlock>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  String _displayed = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    );
-    _ctrl.addListener(
-      () => setState(() {
-        final t = _ctrl.value;
-        final text = widget.block.content ?? '';
-        _displayed = text.substring(
-          0,
-          (text.length * t).round().clamp(0, text.length),
-        );
-      }),
-    );
-    _ctrl.forward();
-  }
-
-  @override
-  void didUpdateWidget(_ThinkingBlock old) {
-    super.didUpdateWidget(old);
-    if (old.block.content != widget.block.content && !_ctrl.isAnimating) {
-      _ctrl.reset();
-      _ctrl.forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
     return Text(
-      _displayed.isEmpty ? (widget.block.content ?? '') : _displayed,
+      block.content ?? '',
       style: TextStyle(
         color: theme.textSecondary,
         fontSize: theme.fontSizeMd,
@@ -385,41 +341,28 @@ class _ConfirmGate extends StatelessWidget {
               theme.spacingSm,
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: _ConfirmButton(
-                    label: '允许',
-                    color: theme.accent,
-                    textColor: Colors.white,
-                    onPressed: () => bus.confirmTool(
-                      exchangeId,
-                      block.toolName ?? '',
-                      false,
-                    ),
-                  ),
+                _ConfirmButton.filled(
+                  label: '允许',
+                  color: theme.accent,
+                  onPressed: () =>
+                      bus.confirmTool(exchangeId, block.toolName ?? '', false),
                 ),
+                if (block.canAlwaysAllow) const SizedBox(width: 8),
                 if (block.canAlwaysAllow)
-                  Expanded(
-                    child: _ConfirmButton(
-                      label: '始终允许',
-                      color: theme.success,
-                      textColor: Colors.white,
-                      onPressed: () => bus.confirmTool(
-                        exchangeId,
-                        block.toolName ?? '',
-                        true,
-                      ),
-                    ),
-                  ),
-                Expanded(
-                  child: _ConfirmButton(
-                    label: '取消',
-                    color: Colors.transparent,
-                    textColor: theme.textSecondary,
-                    borderColor: theme.borderStrong,
+                  _ConfirmButton.outlined(
+                    label: '始终允许',
+                    color: theme.accent,
                     onPressed: () =>
-                        bus.cancelTool(exchangeId, block.toolName ?? ''),
+                        bus.confirmTool(exchangeId, block.toolName ?? '', true),
                   ),
+                const SizedBox(width: 8),
+                _ConfirmButton.text(
+                  label: '取消',
+                  color: theme.textSecondary,
+                  onPressed: () =>
+                      bus.cancelTool(exchangeId, block.toolName ?? ''),
                 ),
               ],
             ),
@@ -433,38 +376,78 @@ class _ConfirmGate extends StatelessWidget {
 class _ConfirmButton extends StatelessWidget {
   final String label;
   final Color color;
-  final Color textColor;
-  final Color? borderColor;
+  final bool _filled;
+  final bool _outlined;
   final VoidCallback onPressed;
 
-  const _ConfirmButton({
+  const _ConfirmButton._({
     required this.label,
     required this.color,
-    required this.textColor,
-    this.borderColor,
     required this.onPressed,
+    required this._filled,
+    required this._outlined,
   });
+
+  factory _ConfirmButton.filled({
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) => _ConfirmButton._(
+    label: label,
+    color: color,
+    onPressed: onPressed,
+    filled: true,
+    outlined: false,
+  );
+
+  factory _ConfirmButton.outlined({
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) => _ConfirmButton._(
+    label: label,
+    color: color,
+    onPressed: onPressed,
+    filled: false,
+    outlined: true,
+  );
+
+  factory _ConfirmButton.text({
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) => _ConfirmButton._(
+    label: label,
+    color: color,
+    onPressed: onPressed,
+    filled: false,
+    outlined: false,
+  );
 
   @override
   Widget build(BuildContext context) {
-    final theme = ChatTheme.of(context);
+    final bgColor = _filled ? color : Colors.transparent;
+    final fgColor = _filled ? Colors.white : color;
+    final borderSide = _outlined
+        ? BorderSide(color: color.withValues(alpha: 0.5))
+        : BorderSide.none;
+
     return SizedBox(
-      height: theme.buttonHeight,
+      height: 32,
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: textColor,
+          backgroundColor: bgColor,
+          foregroundColor: fgColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(theme.radiusMd),
-            side: borderColor != null
-                ? BorderSide(color: borderColor!)
-                : BorderSide.none,
+            borderRadius: BorderRadius.circular(4),
+            side: borderSide,
           ),
-          padding: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           textStyle: TextStyle(
-            fontSize: theme.fontSizeMd,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
+            letterSpacing: 0.3,
           ),
         ),
         child: Text(label),
