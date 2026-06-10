@@ -25,13 +25,12 @@ void main() {
       expect(find.text('你好'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('full AI exchange: thinking → tool → content',
-        (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: ChatScreen(
-          bus: DefaultChatBus(onGenerate: mockAI()),
+    testWidgets('full AI exchange: thinking → tool → content', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChatScreen(bus: DefaultChatBus(onGenerate: mockAI())),
         ),
-      ));
+      );
 
       await tester.enterText(find.byType(TextField), '分析代码');
       await tester.tap(find.byIcon(Icons.send_rounded));
@@ -122,16 +121,27 @@ Stream<ExchangeEvent> _buildMockStream({
   const thinkText = '分析中……';
   for (var i = 0; i < thinkText.length; i += 2) {
     await Future.delayed(const Duration(milliseconds: 10));
-    yield ThinkingDelta(id, 'th1',
-        thinkText.substring(0, i + 2 > thinkText.length ? thinkText.length : i + 2));
+    yield ThinkingDelta(
+      id,
+      'th1',
+      thinkText.substring(
+        0,
+        i + 2 > thinkText.length ? thinkText.length : i + 2,
+      ),
+    );
   }
   yield ThinkingCompleted(id, 'th1', thinkText);
   yield ParallelBoundary(id);
 
   if (hasTool) {
-    yield ToolCallStarted(id, 'tc1', toolName, {'pattern': 'TODO'},
-        requiresConfirm: requireConfirm,
-        autoApproved: !requireConfirm);
+    yield ToolCallStarted(
+      id,
+      'tc1',
+      toolName,
+      {'pattern': 'TODO'},
+      requiresConfirm: requireConfirm,
+      autoApproved: !requireConfirm,
+    );
     await Future.delayed(const Duration(milliseconds: 100));
     yield ToolCallCompleted(id, 'tc1', 'src/main.dart:42');
     yield ParallelBoundary(id);
@@ -141,8 +151,11 @@ Stream<ExchangeEvent> _buildMockStream({
   const reply = '分析完成。发现一处 TODO。';
   for (var i = 0; i < reply.length; i += 2) {
     await Future.delayed(const Duration(milliseconds: 10));
-    yield ContentDelta(id, 'ct1',
-        reply.substring(0, i + 2 > reply.length ? reply.length : i + 2));
+    yield ContentDelta(
+      id,
+      'ct1',
+      reply.substring(0, i + 2 > reply.length ? reply.length : i + 2),
+    );
   }
   yield ContentCompleted(id, 'ct1', reply);
 }

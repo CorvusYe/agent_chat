@@ -26,11 +26,7 @@ class _AutoResizeTextFieldState extends State<AutoResizeTextField> {
       controller: widget.controller,
       maxLines: null,
       minLines: 1,
-      style: TextStyle(
-        color: theme.textInput,
-        fontSize: 14,
-        height: 1.5,
-      ),
+      style: TextStyle(color: theme.textInput, fontSize: 14, height: 1.5),
       decoration: InputDecoration(
         isCollapsed: true,
         hintText: widget.hintText,

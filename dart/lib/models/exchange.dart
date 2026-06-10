@@ -9,8 +9,7 @@ enum ExchangeStatus {
   cancelled;
 
   bool get isActive =>
-      this == ExchangeStatus.processing ||
-      this == ExchangeStatus.waitingInput;
+      this == ExchangeStatus.processing || this == ExchangeStatus.waitingInput;
 }
 
 class Exchange {
@@ -53,8 +52,7 @@ class Exchange {
     );
   }
 
-  String get shortUserMessage =>
-      userMessage.length > 60
-          ? '${userMessage.substring(0, 60)}…'
-          : userMessage;
+  String get shortUserMessage => userMessage.length > 60
+      ? '${userMessage.substring(0, 60)}…'
+      : userMessage;
 }

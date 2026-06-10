@@ -8,15 +8,18 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Input Padding', () {
-    testWidgets('outer Container uses Fluent 2 spacing tokens (12,4,12,4)',
-        (tester) async {
+    testWidgets('outer Container uses Fluent 2 spacing tokens (12,4,12,4)', (
+      tester,
+    ) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
       expect(
-        find.byWidgetPredicate((w) =>
-            w is Container &&
-            w.padding == const EdgeInsets.fromLTRB(12, 4, 12, 4)),
+        find.byWidgetPredicate(
+          (w) =>
+              w is Container &&
+              w.padding == const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        ),
         findsOneWidget,
       );
     });
@@ -26,8 +29,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
       final tf = tester.widget<TextField>(find.byType(TextField));
-      expect(tf.decoration?.contentPadding,
-          const EdgeInsets.fromLTRB(4, 8, 4, 8));
+      expect(
+        tf.decoration?.contentPadding,
+        const EdgeInsets.fromLTRB(4, 8, 4, 8),
+      );
     });
   });
 
@@ -36,8 +41,9 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Underline Border', () {
-    testWidgets('enabled underline is 1px theme.border (0xFF484848)',
-        (tester) async {
+    testWidgets('enabled underline is 1px theme.border (0xFF484848)', (
+      tester,
+    ) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
@@ -48,19 +54,21 @@ void main() {
       expect(border.borderSide.width, 1.0);
     });
 
-    testWidgets('focused underline uses same borderSide, accent via animation',
-        (tester) async {
-      final bus = DefaultChatBus();
-      await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
+    testWidgets(
+      'focused underline uses same borderSide, accent via animation',
+      (tester) async {
+        final bus = DefaultChatBus();
+        await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
-      final tf = tester.widget<TextField>(find.byType(TextField));
-      final border = tf.decoration?.focusedBorder;
-      expect(border, isA<InputBorder>());
-      // base line color matches enabled state; accent color appears
-      // through the animated gradient in _AccentUnderlineBorder.paint
-      expect(border!.borderSide.color, const Color(0xFF484848));
-      expect(border.borderSide.width, 1.0);
-    });
+        final tf = tester.widget<TextField>(find.byType(TextField));
+        final border = tf.decoration?.focusedBorder;
+        expect(border, isA<InputBorder>());
+        // base line color matches enabled state; accent color appears
+        // through the animated gradient in _AccentUnderlineBorder.paint
+        expect(border!.borderSide.color, const Color(0xFF484848));
+        expect(border.borderSide.width, 1.0);
+      },
+    );
   });
 
   // ═══════════════════════════════════════════════════════
@@ -68,8 +76,9 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Placeholder Style', () {
-    testWidgets('hint text uses fluentDark textPlaceholder (0xFF5c5c5c)',
-        (tester) async {
+    testWidgets('hint text uses fluentDark textPlaceholder (0xFF5c5c5c)', (
+      tester,
+    ) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 

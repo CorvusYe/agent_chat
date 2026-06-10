@@ -10,17 +10,11 @@ class ExchangeWidget extends StatelessWidget {
   final Exchange exchange;
   final ChatBus bus;
 
-  const ExchangeWidget({
-    super.key,
-    required this.exchange,
-    required this.bus,
-  });
+  const ExchangeWidget({super.key, required this.exchange, required this.bus});
 
   @override
   Widget build(BuildContext context) {
-    final allBlocks = exchange.groups
-        .expand((g) => g.blocks)
-        .toList();
+    final allBlocks = exchange.groups.expand((g) => g.blocks).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,18 +23,14 @@ class ExchangeWidget extends StatelessWidget {
         // 用户消息
         _buildUserMessage(context),
         // 时间轴
-        if (allBlocks.isNotEmpty)
-          _buildTimeline(context, allBlocks),
+        if (allBlocks.isNotEmpty) _buildTimeline(context, allBlocks),
       ],
     );
   }
 
   Widget _buildUserMessage(BuildContext context) {
     final theme = ChatTheme.of(context);
-    return _UserMessage(
-      text: exchange.userMessage,
-      theme: theme,
-    );
+    return _UserMessage(text: exchange.userMessage, theme: theme);
   }
 
   Widget _buildTimeline(BuildContext context, List<ChatBlock> blocks) {
@@ -54,10 +44,7 @@ class ExchangeWidget extends StatelessWidget {
           left: 4,
           top: 12,
           bottom: 8,
-          child: Container(
-            width: 2,
-            color: theme.border,
-          ),
+          child: Container(width: 2, color: theme.border),
         ),
         // blocks
         Column(
@@ -80,7 +67,6 @@ class ExchangeWidget extends StatelessWidget {
       ],
     );
   }
-
 }
 
 // ═══════════════════════════════════════════════════════
@@ -116,9 +102,7 @@ Widget buildExchangeTimeline(
   void Function(String blockId, bool expanded)? onCollapsedChanged,
 }) {
   final theme = ChatTheme.of(context);
-  final allBlocks = exchange.groups
-      .expand((g) => g.blocks)
-      .toList();
+  final allBlocks = exchange.groups.expand((g) => g.blocks).toList();
 
   if (allBlocks.isEmpty) return const SizedBox.shrink();
 
@@ -130,10 +114,7 @@ Widget buildExchangeTimeline(
         left: 4,
         top: 12,
         bottom: 8,
-        child: Container(
-          width: 2,
-          color: theme.border,
-        ),
+        child: Container(width: 2, color: theme.border),
       ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,10 +233,7 @@ class _UserMessage extends StatefulWidget {
   final String text;
   final ChatTheme theme;
 
-  const _UserMessage({
-    required this.text,
-    required this.theme,
-  });
+  const _UserMessage({required this.text, required this.theme});
 
   @override
   State<_UserMessage> createState() => _UserMessageState();
@@ -314,13 +292,14 @@ class _UserMessageState extends State<_UserMessage> {
               // scrollable content with height constraint
               ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxHeight:
-                      _expanded ? expandedMaxHeight : collapsedHeight,
+                  maxHeight: _expanded ? expandedMaxHeight : collapsedHeight,
                 ),
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                        horizontal: padH, vertical: padV),
+                      horizontal: padH,
+                      vertical: padV,
+                    ),
                     child: Text(widget.text, style: textStyle),
                   ),
                 ),
@@ -451,8 +430,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: theme.bgPrimary,
-                      border: Border.all(
-                          color: widget.showDotColor, width: 2),
+                      border: Border.all(color: widget.showDotColor, width: 2),
                     ),
                   ),
                 ),
@@ -475,8 +453,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: ConstrainedBox(
-              constraints:
-                  BoxConstraints(maxHeight: theme.contentMaxHeight),
+              constraints: BoxConstraints(maxHeight: theme.contentMaxHeight),
               child: SingleChildScrollView(
                 child: BlockRegistry.build(
                   context,

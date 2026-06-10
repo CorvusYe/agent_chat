@@ -426,17 +426,23 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       spacingMd: lerpDouble(spacingMd, other.spacingMd, t) ?? spacingMd,
       spacingLg: lerpDouble(spacingLg, other.spacingLg, t) ?? spacingLg,
       spacingXl: lerpDouble(spacingXl, other.spacingXl, t) ?? spacingXl,
-      spacingWindow: lerpDouble(spacingWindow, other.spacingWindow, t) ?? spacingWindow,
-      blockPadding: EdgeInsets.lerp(blockPadding, other.blockPadding, t) ?? blockPadding,
+      spacingWindow:
+          lerpDouble(spacingWindow, other.spacingWindow, t) ?? spacingWindow,
+      blockPadding:
+          EdgeInsets.lerp(blockPadding, other.blockPadding, t) ?? blockPadding,
       radiusSm: lerpDouble(radiusSm, other.radiusSm, t) ?? radiusSm,
       radiusMd: lerpDouble(radiusMd, other.radiusMd, t) ?? radiusMd,
       radiusLg: lerpDouble(radiusLg, other.radiusLg, t) ?? radiusLg,
       radiusXl: lerpDouble(radiusXl, other.radiusXl, t) ?? radiusXl,
       iconSizeSm: lerpDouble(iconSizeSm, other.iconSizeSm, t) ?? iconSizeSm,
       iconSizeMd: lerpDouble(iconSizeMd, other.iconSizeMd, t) ?? iconSizeMd,
-      buttonHeight: lerpDouble(buttonHeight, other.buttonHeight, t) ?? buttonHeight,
-      inputMinHeight: lerpDouble(inputMinHeight, other.inputMinHeight, t) ?? inputMinHeight,
-      contentMaxHeight: lerpDouble(contentMaxHeight, other.contentMaxHeight, t) ?? contentMaxHeight,
+      buttonHeight:
+          lerpDouble(buttonHeight, other.buttonHeight, t) ?? buttonHeight,
+      inputMinHeight:
+          lerpDouble(inputMinHeight, other.inputMinHeight, t) ?? inputMinHeight,
+      contentMaxHeight:
+          lerpDouble(contentMaxHeight, other.contentMaxHeight, t) ??
+          contentMaxHeight,
     );
   }
 }

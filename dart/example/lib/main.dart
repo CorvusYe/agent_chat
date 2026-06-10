@@ -21,9 +21,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     bus = ChatBus.withDecorators(
       impl: DefaultChatBus(onGenerate: _mockAI),
-      decorators: [
-        (inner) => _QueueInputDecorator(inner),
-      ],
+      decorators: [(inner) => _QueueInputDecorator(inner)],
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => _autoDemo());
   }
@@ -142,13 +140,30 @@ class _QueueInputDecorator with ChangeNotifier implements ChatBus {
 
 final _rand = Random(42);
 final _toolPool = <_ToolEntry>[
-  _ToolEntry('read_file', {'path': 'src/app.dart'},
-      'import { defineComponent } from "vue";\n\nexport function initApp() { ... }', false),
-  _ToolEntry('grep_files', {'pattern': 'TODO'},
-      'src/main.js:15:  // TODO: handle error\nsrc/utils.js:42:  // TODO: optimize', false),
-  _ToolEntry('execute_command', {'cmd': 'npm run build'}, '✓ built in 2.3s', true),
-  _ToolEntry('analysis', {'target': 'src/db/query.js:42'},
-      '检测到 SQL 拼接语句，存在注入风险。\n等级: 高危', true),
+  _ToolEntry(
+    'read_file',
+    {'path': 'src/app.dart'},
+    'import { defineComponent } from "vue";\n\nexport function initApp() { ... }',
+    false,
+  ),
+  _ToolEntry(
+    'grep_files',
+    {'pattern': 'TODO'},
+    'src/main.js:15:  // TODO: handle error\nsrc/utils.js:42:  // TODO: optimize',
+    false,
+  ),
+  _ToolEntry(
+    'execute_command',
+    {'cmd': 'npm run build'},
+    '✓ built in 2.3s',
+    true,
+  ),
+  _ToolEntry(
+    'analysis',
+    {'target': 'src/db/query.js:42'},
+    '检测到 SQL 拼接语句，存在注入风险。\n等级: 高危',
+    true,
+  ),
 ];
 
 class _ToolEntry {
@@ -167,7 +182,14 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
   const thinkText = '好的，让我来分析你的请求……';
   for (var i = 0; i < thinkText.length; i += 4) {
     await Future.delayed(const Duration(milliseconds: 20));
-    yield ThinkingDelta(id, 'think_1', thinkText.substring(0, i + 4 > thinkText.length ? thinkText.length : i + 4));
+    yield ThinkingDelta(
+      id,
+      'think_1',
+      thinkText.substring(
+        0,
+        i + 4 > thinkText.length ? thinkText.length : i + 4,
+      ),
+    );
   }
   yield ThinkingCompleted(id, 'think_1', thinkText);
 
@@ -181,9 +203,14 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
     }
     used.add(idx);
     final entry = _toolPool[idx];
-    yield ToolCallStarted(id, 'tool_$i', entry.name, entry.args,
-        requiresConfirm: entry.requiresConfirm,
-        description: entry.requiresConfirm ? '将要执行以下命令' : null);
+    yield ToolCallStarted(
+      id,
+      'tool_$i',
+      entry.name,
+      entry.args,
+      requiresConfirm: entry.requiresConfirm,
+      description: entry.requiresConfirm ? '将要执行以下命令' : null,
+    );
   }
   yield ParallelBoundary(id);
 
@@ -199,7 +226,11 @@ Stream<ExchangeEvent> _mockAI(String text) async* {
   const reply = '以上是执行结果。如果需要进一步处理请告诉我。';
   for (var i = 0; i < reply.length; i += 3) {
     await Future.delayed(const Duration(milliseconds: 15));
-    yield ContentDelta(id, 'content_1', reply.substring(0, i + 3 > reply.length ? reply.length : i + 3));
+    yield ContentDelta(
+      id,
+      'content_1',
+      reply.substring(0, i + 3 > reply.length ? reply.length : i + 3),
+    );
   }
   yield ContentCompleted(id, 'content_1', reply);
 }

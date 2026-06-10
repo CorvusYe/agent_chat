@@ -44,11 +44,7 @@ class ToolCallStarted extends ExchangeEvent {
 class ToolCallDelta extends ExchangeEvent {
   final String blockId;
   final String resultFragment;
-  const ToolCallDelta(
-    super.exchangeId,
-    this.blockId,
-    this.resultFragment,
-  );
+  const ToolCallDelta(super.exchangeId, this.blockId, this.resultFragment);
 }
 
 class ToolCallCompleted extends ExchangeEvent {

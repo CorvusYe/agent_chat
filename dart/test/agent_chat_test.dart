@@ -12,14 +12,22 @@ void main() {
   });
 
   test('ChatBlock copyWith', () {
-    final block = ChatBlock(id: '1', type: BlockType.thinking, status: BlockStatus.pending);
+    final block = ChatBlock(
+      id: '1',
+      type: BlockType.thinking,
+      status: BlockStatus.pending,
+    );
     final updated = block.copyWith(status: BlockStatus.completed);
     expect(updated.status, BlockStatus.completed);
     expect(updated.id, '1');
   });
 
   test('Exchange copyWith', () {
-    final ex = Exchange(id: '1', userMessage: 'hello', timestamp: DateTime.now());
+    final ex = Exchange(
+      id: '1',
+      userMessage: 'hello',
+      timestamp: DateTime.now(),
+    );
     final updated = ex.copyWith(status: ExchangeStatus.completed);
     expect(updated.status, ExchangeStatus.completed);
     expect(updated.userMessage, 'hello');

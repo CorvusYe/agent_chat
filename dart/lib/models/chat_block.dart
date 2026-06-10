@@ -17,14 +17,7 @@ class BlockType {
   String toString() => 'BlockType($name)';
 }
 
-enum BlockStatus {
-  pending,
-  running,
-  approved,
-  cancelled,
-  completed,
-  error,
-}
+enum BlockStatus { pending, running, approved, cancelled, completed, error }
 
 class ChatBlock {
   final String id;
@@ -71,8 +64,7 @@ class ChatBlock {
     );
   }
 
-  ChatBlock withStatus(BlockStatus newStatus) =>
-      copyWith(status: newStatus);
+  ChatBlock withStatus(BlockStatus newStatus) => copyWith(status: newStatus);
 }
 
 class BlockGroup {

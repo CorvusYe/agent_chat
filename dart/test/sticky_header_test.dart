@@ -18,8 +18,9 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Pinned Header', () {
-    testWidgets('pinned header shows block header for active block',
-        (tester) async {
+    testWidgets('pinned header shows block header for active block', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
@@ -40,8 +41,9 @@ void main() {
       await ctrl.close();
     });
 
-    testWidgets('pinned header block header uses bgPrimary color',
-        (tester) async {
+    testWidgets('pinned header block header uses bgPrimary color', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
@@ -65,8 +67,9 @@ void main() {
       await ctrl.close();
     });
 
-    testWidgets('pinned header 回答 block uses headerContent color',
-        (tester) async {
+    testWidgets('pinned header 回答 block uses headerContent color', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
@@ -87,15 +90,22 @@ void main() {
       await ctrl.close();
     });
 
-    testWidgets('pinned header 工具 block uses headerTool color',
-        (tester) async {
+    testWidgets('pinned header 工具 block uses headerTool color', (tester) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
       final exId = await tester.sendMessage('test', bus);
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'read_file', {},
-          requiresConfirm: false, autoApproved: true));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'read_file',
+          {},
+          requiresConfirm: false,
+          autoApproved: true,
+        ),
+      );
       ctrl.add(ToolCallCompleted(exId, 'tc1', 'file content'));
       ctrl.add(ParallelBoundary(exId));
       await tester.pump();
@@ -115,8 +125,9 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Collapsed Blocks', () {
-    testWidgets('collapsed block does not pin above expanded block',
-        (tester) async {
+    testWidgets('collapsed block does not pin above expanded block', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
@@ -129,8 +140,16 @@ void main() {
       ctrl.add(ParallelBoundary(exId));
       await tester.pump();
 
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'execute_command', {},
-          requiresConfirm: false, autoApproved: true));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'execute_command',
+          {},
+          requiresConfirm: false,
+          autoApproved: true,
+        ),
+      );
       ctrl.add(ToolCallCompleted(exId, 'tc1', 'done'));
       ctrl.add(ParallelBoundary(exId));
       await tester.pump();
@@ -205,8 +224,16 @@ void main() {
       await tester.pump();
 
       // tool
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'grep_files', {},
-          requiresConfirm: false, autoApproved: true));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'grep_files',
+          {},
+          requiresConfirm: false,
+          autoApproved: true,
+        ),
+      );
       ctrl.add(ToolCallCompleted(exId, 'tc1', 'result'));
       ctrl.add(ParallelBoundary(exId));
       await tester.pump();
@@ -264,10 +291,12 @@ void main() {
   group('Multi-Exchange Scroll', () {
     /// Long user message to ensure each exchange takes ~80px (viewPort ~480px,
     /// need enough content to scroll past the viewport).
-    String msg(int i) => '这是第 $i 条消息，用来产生足够的滚动高度以验证覆盖层固定头部在滚动多条消息时能正确追踪当前活跃的交换。';
+    String msg(int i) =>
+        '这是第 $i 条消息，用来产生足够的滚动高度以验证覆盖层固定头部在滚动多条消息时能正确追踪当前活跃的交换。';
 
-    testWidgets('scrolling past 40 exchanges unpins first message',
-        (tester) async {
+    testWidgets('scrolling past 40 exchanges unpins first message', (
+      tester,
+    ) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
@@ -280,16 +309,13 @@ void main() {
       expect(find.text(msg(1)), findsOneWidget);
 
       // Jump past all exchanges
-      final sv = tester.widget<CustomScrollView>(
-          find.byType(CustomScrollView));
-      sv.controller?.jumpTo(
-          sv.controller!.position.maxScrollExtent);
+      final sv = tester.widget<CustomScrollView>(find.byType(CustomScrollView));
+      sv.controller?.jumpTo(sv.controller!.position.maxScrollExtent);
       await tester.pump();
       expect(sv.controller!.offset, greaterThan(0.0));
     });
 
-    testWidgets('scrolling back to top repins first message',
-        (tester) async {
+    testWidgets('scrolling back to top repins first message', (tester) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
@@ -299,10 +325,8 @@ void main() {
       await tester.pump();
 
       // Jump to bottom then back to top
-      final sv = tester.widget<CustomScrollView>(
-          find.byType(CustomScrollView));
-      sv.controller?.jumpTo(
-          sv.controller!.position.maxScrollExtent);
+      final sv = tester.widget<CustomScrollView>(find.byType(CustomScrollView));
+      sv.controller?.jumpTo(sv.controller!.position.maxScrollExtent);
       await tester.pump();
       sv.controller?.jumpTo(0);
       await tester.pump();

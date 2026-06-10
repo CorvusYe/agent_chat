@@ -68,20 +68,15 @@ class QueuePopup extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       '待发送队列为空',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.textTertiary,
-                      ),
+                      style: TextStyle(fontSize: 12, color: theme.textTertiary),
                     ),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(12),
                     shrinkWrap: true,
                     itemCount: items.length,
-                    separatorBuilder: (_, _) => Divider(
-                      height: 1,
-                      color: theme.borderLight,
-                    ),
+                    separatorBuilder: (_, _) =>
+                        Divider(height: 1, color: theme.borderLight),
                     itemBuilder: (_, i) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Row(

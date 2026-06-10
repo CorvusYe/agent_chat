@@ -9,12 +9,13 @@ import '../theme/chat_theme.dart';
 /// block — 要渲染的 block 数据
 /// bus — 外壳总线，用于触发 confirm/cancel 等
 /// exchange — 所属 exchange，用于获取上下文
-typedef BlockWidgetBuilder = Widget Function(
-  BuildContext context,
-  ChatBlock block,
-  ChatBus bus,
-  Exchange exchange,
-);
+typedef BlockWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      ChatBlock block,
+      ChatBus bus,
+      Exchange exchange,
+    );
 
 /// BlockRegistry — 可插拔的 block 渲染器注册表。
 ///
@@ -51,12 +52,10 @@ class BlockRegistry {
   }
 
   /// 获取指定类型的构造器。
-  static BlockWidgetBuilder? get(BlockType type) =>
-      _registry[type.name];
+  static BlockWidgetBuilder? get(BlockType type) => _registry[type.name];
 
   /// 获取自定义类型的构造器。
-  static BlockWidgetBuilder? getCustom(String name) =>
-      _registry[name];
+  static BlockWidgetBuilder? getCustom(String name) => _registry[name];
 
   /// 构建 block widget。
   static Widget build(
@@ -79,34 +78,42 @@ class BlockRegistry {
 // ═══════════════════════════════════════════════════════
 
 Widget _defaultThinkingBuilder(
-    BuildContext context, ChatBlock block, ChatBus bus, Exchange exchange) {
+  BuildContext context,
+  ChatBlock block,
+  ChatBus bus,
+  Exchange exchange,
+) {
   return _ThinkingBlock(block: block);
 }
 
 Widget _defaultToolBuilder(
-    BuildContext context, ChatBlock block, ChatBus bus, Exchange exchange) {
+  BuildContext context,
+  ChatBlock block,
+  ChatBus bus,
+  Exchange exchange,
+) {
   if (block.requiresConfirm && block.status == BlockStatus.pending) {
-    return _ConfirmGate(
-      block: block,
-      bus: bus,
-      exchangeId: exchange.id,
-    );
+    return _ConfirmGate(block: block, bus: bus, exchangeId: exchange.id);
   }
   return _ToolBlock(block: block);
 }
 
 Widget _defaultContentBuilder(
-    BuildContext context, ChatBlock block, ChatBus bus, Exchange exchange) {
+  BuildContext context,
+  ChatBlock block,
+  ChatBus bus,
+  Exchange exchange,
+) {
   return _ContentBlock(block: block);
 }
 
 Widget _defaultConfirmBuilder(
-    BuildContext context, ChatBlock block, ChatBus bus, Exchange exchange) {
-  return _ConfirmGate(
-    block: block,
-    bus: bus,
-    exchangeId: exchange.id,
-  );
+  BuildContext context,
+  ChatBlock block,
+  ChatBus bus,
+  Exchange exchange,
+) {
+  return _ConfirmGate(block: block, bus: bus, exchangeId: exchange.id);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -133,20 +140,23 @@ class _ThinkingBlockState extends State<_ThinkingBlock>
       vsync: this,
       duration: const Duration(seconds: 1),
     );
-    _ctrl.addListener(() => setState(() {
-          final t = _ctrl.value;
-          final text = widget.block.content ?? '';
-          _displayed = text.substring(0,
-              (text.length * t).round().clamp(0, text.length));
-        }));
+    _ctrl.addListener(
+      () => setState(() {
+        final t = _ctrl.value;
+        final text = widget.block.content ?? '';
+        _displayed = text.substring(
+          0,
+          (text.length * t).round().clamp(0, text.length),
+        );
+      }),
+    );
     _ctrl.forward();
   }
 
   @override
   void didUpdateWidget(_ThinkingBlock old) {
     super.didUpdateWidget(old);
-    if (old.block.content != widget.block.content &&
-        !_ctrl.isAnimating) {
+    if (old.block.content != widget.block.content && !_ctrl.isAnimating) {
       _ctrl.reset();
       _ctrl.forward();
     }
@@ -164,10 +174,10 @@ class _ThinkingBlockState extends State<_ThinkingBlock>
     return Text(
       _displayed.isEmpty ? (widget.block.content ?? '') : _displayed,
       style: TextStyle(
-          color: theme.textSecondary,
-          fontSize: theme.fontSizeMd,
-          height: 1.5,
-        ),
+        color: theme.textSecondary,
+        fontSize: theme.fontSizeMd,
+        height: 1.5,
+      ),
     );
   }
 }
@@ -199,7 +209,9 @@ class _ToolBlock extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(
-                horizontal: theme.spacingMd, vertical: theme.spacingXs + 2),
+              horizontal: theme.spacingMd,
+              vertical: theme.spacingXs + 2,
+            ),
             color: theme.bgCardHeader,
             child: Row(
               children: [
@@ -212,8 +224,7 @@ class _ToolBlock extends StatelessWidget {
                     color: theme.textToolHeader,
                   ),
                 ),
-                if (block.toolArgs != null &&
-                    block.toolArgs!.isNotEmpty) ...[
+                if (block.toolArgs != null && block.toolArgs!.isNotEmpty) ...[
                   const Spacer(),
                   Flexible(
                     child: Text(
@@ -235,9 +246,7 @@ class _ToolBlock extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(theme.spacingMd),
-              color: isDark
-                  ? const Color(0x1A000000)
-                  : const Color(0x0A000000),
+              color: isDark ? const Color(0x1A000000) : const Color(0x0A000000),
               child: Text(
                 block.toolResult!,
                 style: TextStyle(
@@ -276,7 +285,6 @@ class _ContentBlock extends StatelessWidget {
   }
 }
 
-
 // ═══════════════════════════════════════════════════════
 //  Confirm Gate
 // ═══════════════════════════════════════════════════════
@@ -309,7 +317,11 @@ class _ConfirmGate extends StatelessWidget {
           if (block.description != null)
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  theme.spacingMd, theme.spacingSm, theme.spacingMd, theme.spacingXs),
+                theme.spacingMd,
+                theme.spacingSm,
+                theme.spacingMd,
+                theme.spacingXs,
+              ),
               child: Text(
                 block.description!,
                 style: TextStyle(
@@ -322,11 +334,14 @@ class _ConfirmGate extends StatelessWidget {
           if (block.toolName != null)
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: theme.spacingMd, vertical: theme.spacingXs),
+                horizontal: theme.spacingMd,
+                vertical: theme.spacingXs,
+              ),
               child: Container(
                 padding: EdgeInsets.symmetric(
-                    horizontal: theme.spacingSm + 2,
-                    vertical: theme.spacingXs + 2),
+                  horizontal: theme.spacingSm + 2,
+                  vertical: theme.spacingXs + 2,
+                ),
                 decoration: BoxDecoration(
                   color: theme.bgCommand,
                   borderRadius: BorderRadius.circular(theme.radiusMd),
@@ -364,7 +379,11 @@ class _ConfirmGate extends StatelessWidget {
             ),
           Padding(
             padding: EdgeInsets.fromLTRB(
-                theme.spacingMd, theme.spacingXs, theme.spacingMd, theme.spacingSm),
+              theme.spacingMd,
+              theme.spacingXs,
+              theme.spacingMd,
+              theme.spacingSm,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -372,8 +391,11 @@ class _ConfirmGate extends StatelessWidget {
                     label: '允许',
                     color: theme.accent,
                     textColor: Colors.white,
-                    onPressed: () =>
-                        bus.confirmTool(exchangeId, block.toolName ?? '', false),
+                    onPressed: () => bus.confirmTool(
+                      exchangeId,
+                      block.toolName ?? '',
+                      false,
+                    ),
                   ),
                 ),
                 if (block.canAlwaysAllow)
@@ -383,8 +405,11 @@ class _ConfirmGate extends StatelessWidget {
                       color: theme.btnSecondaryBg,
                       textColor: theme.accentLight,
                       borderColor: theme.borderAccent,
-                      onPressed: () =>
-                          bus.confirmTool(exchangeId, block.toolName ?? '', true),
+                      onPressed: () => bus.confirmTool(
+                        exchangeId,
+                        block.toolName ?? '',
+                        true,
+                      ),
                     ),
                   ),
                 Expanded(
@@ -439,7 +464,9 @@ class _ConfirmButton extends StatelessWidget {
           ),
           padding: EdgeInsets.zero,
           textStyle: TextStyle(
-              fontSize: theme.fontSizeMd, fontWeight: FontWeight.w500),
+            fontSize: theme.fontSizeMd,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         child: Text(label),
       ),

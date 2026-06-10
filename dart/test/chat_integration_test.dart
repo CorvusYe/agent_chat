@@ -42,8 +42,16 @@ void main() {
       expect(find.text('思考'), findsAtLeastNWidgets(1));
 
       // tool
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'read_file', {'path': 'test.txt'},
-          requiresConfirm: false, autoApproved: true));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'read_file',
+          {'path': 'test.txt'},
+          requiresConfirm: false,
+          autoApproved: true,
+        ),
+      );
       ctrl.add(ToolCallCompleted(exId, 'tc1', 'file content here'));
       ctrl.add(ParallelBoundary(exId));
       await tester.pump();
@@ -64,9 +72,8 @@ void main() {
 
     testWidgets('ExchangeError shows failed exchange', (tester) async {
       final bus = DefaultChatBus(
-        onGenerate: (_) => Stream.fromIterable([
-          ExchangeError('', 'API error'),
-        ]),
+        onGenerate: (_) =>
+            Stream.fromIterable([ExchangeError('', 'API error')]),
       );
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
@@ -84,17 +91,26 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Confirm Gate', () {
-    testWidgets('tool requiring confirm shows gate, allow proceeds',
-        (tester) async {
+    testWidgets('tool requiring confirm shows gate, allow proceeds', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
       final exId = await tester.sendMessage('执行命令', bus);
 
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'execute_command', {'cmd': 'ls'},
-          requiresConfirm: true, autoApproved: false,
-          description: '将要执行命令 ls'));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'execute_command',
+          {'cmd': 'ls'},
+          requiresConfirm: true,
+          autoApproved: false,
+          description: '将要执行命令 ls',
+        ),
+      );
       await tester.pump();
 
       // confirm gate buttons visible
@@ -121,8 +137,16 @@ void main() {
 
       final exId = await tester.sendMessage('run', bus);
 
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'execute_command', {'cmd': 'ls'},
-          requiresConfirm: true, autoApproved: false));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'execute_command',
+          {'cmd': 'ls'},
+          requiresConfirm: true,
+          autoApproved: false,
+        ),
+      );
       await tester.pump();
 
       expect(find.text('取消'), findsOneWidget);
@@ -134,8 +158,9 @@ void main() {
       await ctrl.close();
     });
 
-    testWidgets('always allow skips subsequent confirm for same tool',
-        (tester) async {
+    testWidgets('always allow skips subsequent confirm for same tool', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
@@ -143,8 +168,16 @@ void main() {
       // first message: tool requires confirm, click "始终允许"
       final exId1 = await tester.sendMessage('first', bus);
 
-      ctrl.add(ToolCallStarted(exId1, 'tc1', 'execute_command', {'cmd': 'ls'},
-          requiresConfirm: true, autoApproved: false));
+      ctrl.add(
+        ToolCallStarted(
+          exId1,
+          'tc1',
+          'execute_command',
+          {'cmd': 'ls'},
+          requiresConfirm: true,
+          autoApproved: false,
+        ),
+      );
       await tester.pump();
       expect(find.text('始终允许'), findsOneWidget);
 
@@ -161,8 +194,16 @@ void main() {
 
       final exId2 = await tester.sendMessage('second', bus);
 
-      ctrl2.add(ToolCallStarted(exId2, 'tc2', 'execute_command', {'cmd': 'pwd'},
-          requiresConfirm: true, autoApproved: false));
+      ctrl2.add(
+        ToolCallStarted(
+          exId2,
+          'tc2',
+          'execute_command',
+          {'cmd': 'pwd'},
+          requiresConfirm: true,
+          autoApproved: false,
+        ),
+      );
       await tester.pump();
 
       // no confirm gate — tool runs directly
@@ -183,8 +224,9 @@ void main() {
   // ═══════════════════════════════════════════════════════
 
   group('Element Styles', () {
-    testWidgets('thinking header uses fluentDark headerThinking (0xFFa0a0a0)',
-        (tester) async {
+    testWidgets('thinking header uses fluentDark headerThinking (0xFFa0a0a0)', (
+      tester,
+    ) async {
       final ctrl = StreamController<ExchangeEvent>();
       final bus = DefaultChatBus(onGenerate: (_) => ctrl.stream);
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
@@ -203,8 +245,9 @@ void main() {
       await ctrl.close();
     });
 
-    testWidgets('empty placeholder uses fluentDark textTertiary (0xFF707070)',
-        (tester) async {
+    testWidgets('empty placeholder uses fluentDark textTertiary (0xFF707070)', (
+      tester,
+    ) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
@@ -212,8 +255,9 @@ void main() {
       expect(placeholder.style?.color, const Color(0xFF707070));
     });
 
-    testWidgets('input TextField uses fluentDark textInput color',
-        (tester) async {
+    testWidgets('input TextField uses fluentDark textInput color', (
+      tester,
+    ) async {
       final bus = DefaultChatBus();
       await tester.pumpWidget(MaterialApp(home: ChatScreen(bus: bus)));
 
@@ -340,8 +384,16 @@ void main() {
       expect(find.text('思考'), findsAtLeastNWidgets(1));
 
       // add tool after thinking
-      ctrl.add(ToolCallStarted(exId, 'tc1', 'grep_files', {},
-          requiresConfirm: false, autoApproved: true));
+      ctrl.add(
+        ToolCallStarted(
+          exId,
+          'tc1',
+          'grep_files',
+          {},
+          requiresConfirm: false,
+          autoApproved: true,
+        ),
+      );
       ctrl.add(ToolCallCompleted(exId, 'tc1', 'result A'));
       ctrl.add(ParallelBoundary(exId));
       await tester.pump();
