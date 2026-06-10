@@ -6,11 +6,7 @@ class StatsBar extends StatelessWidget {
   final Duration? elapsed;
   final int totalTokens;
 
-  const StatsBar({
-    super.key,
-    this.elapsed,
-    this.totalTokens = 0,
-  });
+  const StatsBar({super.key, this.elapsed, this.totalTokens = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +16,14 @@ class StatsBar extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       height: visible ? theme.spacingXl : 0,
-      padding: visible
-          ? EdgeInsets.symmetric(horizontal: theme.spacingXl)
-          : EdgeInsets.zero,
       child: visible
           ? Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 _StatItem(
                   icon: Icons.access_time,
-                  label: '${(elapsed!.inMilliseconds / 1000).toStringAsFixed(1)}s',
+                  label:
+                      '${(elapsed!.inMilliseconds / 1000).toStringAsFixed(1)}s',
                   color: theme.statColor,
                 ),
                 SizedBox(width: theme.spacingMd),

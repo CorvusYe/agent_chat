@@ -163,7 +163,7 @@ class _ThinkingBlockState extends State<_ThinkingBlock>
     final theme = ChatTheme.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          theme.spacingSm, 0, theme.spacingSm, theme.spacingXs),
+          theme.spacingSm, 0, 0, theme.spacingXs),
       child: Text(
         _displayed.isEmpty ? (widget.block.content ?? '') : _displayed,
         style: TextStyle(
@@ -191,7 +191,7 @@ class _ToolBlock extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.fromLTRB(
-          theme.spacingXs, theme.spacingXs, theme.spacingSm, theme.spacingXs),
+          theme.spacingXs, theme.spacingXs, 0, theme.spacingXs),
       decoration: BoxDecoration(
         color: theme.bgCard,
         border: Border.all(color: theme.borderLight),
@@ -273,7 +273,7 @@ class _ContentBlock extends StatelessWidget {
     final theme = ChatTheme.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          theme.spacingSm, 0, theme.spacingSm, theme.spacingSm),
+          theme.spacingSm, 0, 0, theme.spacingSm),
       child: Text(
         block.content ?? '',
         style: TextStyle(
@@ -306,7 +306,7 @@ class _ConfirmGate extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.fromLTRB(
-          theme.spacingXs, theme.spacingXs, theme.spacingSm, theme.spacingXs),
+          theme.spacingXs, theme.spacingXs, 0, theme.spacingXs),
       decoration: BoxDecoration(
         color: theme.bgWarning,
         border: Border.all(color: theme.borderWarning),

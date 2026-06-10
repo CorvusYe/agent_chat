@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import '../bus/chat_bus.dart';
@@ -34,14 +33,18 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+class _ChatScreenState extends State<ChatScreen>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final TextEditingController _textCtrl = TextEditingController();
   final FocusNode _inputFocus = FocusNode();
   final ScrollController _scrollCtrl = ScrollController();
   bool _queueVisible = false;
   Timer? _statsTimer;
+  late final AnimationController _focusAnimCtrl;
+
   /// Blocks the user manually expanded — override auto-collapse.
   final Set<String> _manuallyExpandedKeys = {};
+
   /// Blocks the user manually collapsed — override auto-expand.
   final Set<String> _manuallyCollapsedKeys = {};
 
@@ -50,8 +53,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _focusAnimCtrl =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 200),
+        )..addListener(() {
+          if (mounted) setState(() {});
+        });
     _inputFocus.addListener(() {
-      if (mounted) setState(() {});
+      if (mounted) {
+        if (_inputFocus.hasFocus) {
+          _focusAnimCtrl.forward();
+        } else {
+          _focusAnimCtrl.reverse();
+        }
+      }
     });
     bus.addListener(_onBusChanged);
     bus.init();
@@ -62,6 +78,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _focusAnimCtrl.dispose();
     _inputFocus.dispose();
     bus.removeListener(_onBusChanged);
     bus.dispose();
@@ -126,21 +143,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final chatTheme = widget.theme ?? ChatThemes.fluentDark;
 
     return Theme(
-      data: ThemeData(
-        extensions: [chatTheme],
-        brightness: Brightness.dark,
-      ),
+      data: ThemeData(extensions: [chatTheme], brightness: Brightness.dark),
       child: Scaffold(
         backgroundColor: chatTheme.bgPrimary,
         body: Column(
           children: [
-            Expanded(
-              child: _buildMessages(chatTheme),
-            ),
-            StatsBar(
-              elapsed: bus.elapsed,
-              totalTokens: bus.totalTokens,
-            ),
+            Expanded(child: _buildMessages(chatTheme)),
+            StatsBar(elapsed: bus.elapsed, totalTokens: bus.totalTokens),
             _buildInput(chatTheme),
           ],
         ),
@@ -151,18 +160,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget _buildMessages(ChatTheme theme) {
     if (bus.isLoadingHistory) {
       return Center(
-        child: widget.loadingIndicator ??
+        child:
+            widget.loadingIndicator ??
             CircularProgressIndicator(color: theme.accent),
       );
     }
 
     if (bus.exchanges.isEmpty) {
       return Center(
-        child: widget.emptyPlaceholder ??
+        child:
+            widget.emptyPlaceholder ??
             Text(
               '发送一条消息开始对话',
               style: TextStyle(
-                  color: theme.textTertiary, fontSize: theme.fontSizeLg),
+                color: theme.textTertiary,
+                fontSize: theme.fontSizeLg,
+              ),
             ),
       );
     }
@@ -172,19 +185,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     return CustomScrollView(
       controller: _scrollCtrl,
-      slivers:
-          _buildExchangeSlivers(theme, viewportWidth, viewportHeight),
+      slivers: _buildExchangeSlivers(theme, viewportWidth, viewportHeight),
     );
   }
 
   List<Widget> _buildExchangeSlivers(
-      ChatTheme theme, double viewportWidth, double viewportHeight) {
+    ChatTheme theme,
+    double viewportWidth,
+    double viewportHeight,
+  ) {
     final slivers = <Widget>[];
     for (final exchange in bus.exchanges) {
       final allBlocks = exchange.groups.expand((g) => g.blocks).toList();
 
       final exHeaderHeight = _UserMsgHeaderDelegate.computeHeight(
-          exchange.userMessage, theme, viewportWidth);
+        exchange.userMessage,
+        theme,
+        viewportWidth,
+      );
 
       // Exchange group: pinned exchange header + per-block inner groups.
       // Blocks get their own SliverMainAxisGroup so their pinned headers
@@ -210,18 +228,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           innerSlivers.add(
             SliverToBoxAdapter(
               child: _buildBlockContent(
-                  context, theme, block, bus, exchange, viewportHeight),
+                context,
+                theme,
+                block,
+                bus,
+                exchange,
+                viewportHeight,
+              ),
             ),
           );
         }
-        groupSlivers.add(
-          SliverMainAxisGroup(slivers: innerSlivers),
-        );
+        groupSlivers.add(SliverMainAxisGroup(slivers: innerSlivers));
       }
 
-      slivers.add(
-        SliverMainAxisGroup(slivers: groupSlivers),
-      );
+      slivers.add(SliverMainAxisGroup(slivers: groupSlivers));
     }
     return slivers;
   }
@@ -243,21 +263,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             left: 4,
             top: 0,
             bottom: 8,
-            child: Container(
-              width: 2,
-              color: theme.border,
-            ),
+            child: Container(width: 2, color: theme.border),
           ),
           // 内容
           Padding(
             padding: EdgeInsets.only(left: 10),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: viewportHeight * 0.618,
-              ),
+              constraints: BoxConstraints(maxHeight: viewportHeight * 0.618),
               child: SingleChildScrollView(
-                child: BlockRegistry.build(
-                    context, block, bus, exchange),
+                child: BlockRegistry.build(context, block, bus, exchange),
               ),
             ),
           ),
@@ -279,7 +293,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return '';
   }
 
-  Widget _buildInlineHeader(BuildContext context, ChatBlock block, Exchange exchange, ChatTheme theme) {
+  Widget _buildInlineHeader(
+    BuildContext context,
+    ChatBlock block,
+    Exchange exchange,
+    ChatTheme theme,
+  ) {
     final collapseKey = '${exchange.id}_${block.id}';
     final collapsed = _isCollapsed(block, exchange);
     final dotColor = dotColorFor(block, theme);
@@ -293,10 +312,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           clipBehavior: Clip.none,
           children: [
             Positioned(
-              left: -17, top: 0, bottom: 0,
+              left: -17,
+              top: 0,
+              bottom: 0,
               child: Center(
                 child: Container(
-                  width: 12, height: 12,
+                  width: 12,
+                  height: 12,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: theme.bgPrimary,
@@ -325,104 +347,86 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildInput(ChatTheme theme) {
+    final animValue = _focusAnimCtrl.value;
+    const inputContentPadding = EdgeInsets.fromLTRB(4, 6, 4, 8);
+    final inputFillColor = Color.lerp(
+      theme.bgSurface,
+      theme.bgInput,
+      animValue,
+    )!;
+    final underlineBorder = _AccentUnderlineBorder(
+      animationValue: animValue,
+      accentColor: theme.accent,
+      borderSide: BorderSide(color: theme.border, width: 1),
+    );
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        theme.spacingXl,
-        theme.spacingXs + 2,
-        theme.spacingXl,
-        theme.spacingSm + MediaQuery.of(context).padding.bottom,
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: theme.borderLight)),
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.bgInput,
-                  border: Border.all(
-                    color: _inputFocus.hasFocus
-                        ? theme.accentLight
-                        : theme.border,
-                    width: _inputFocus.hasFocus ? 2 : 1,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _textCtrl,
+                  focusNode: _inputFocus,
+                  cursorColor: theme.accent,
+                  textAlignVertical: TextAlignVertical.center,
+                  maxLines: 5,
+                  minLines: 1,
+                  style: TextStyle(
+                    color: theme.textInput,
+                    fontSize: 14,
+                    height: 1.5,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _textCtrl,
-                        focusNode: _inputFocus,
-                        cursorColor: theme.accent,
-                        textAlignVertical: TextAlignVertical.center,
-                        maxLines: 5,
-                        minLines: 1,
-                        style: TextStyle(
-                          color: theme.textInput,
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                        decoration: InputDecoration(
-                          isCollapsed: true,
-                          contentPadding: EdgeInsets.fromLTRB(
-                              16, 8, 0, 6),
-                          hintText: '输入消息…',
-                          hintStyle: TextStyle(
-                              color: theme.textPlaceholder),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 4),
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: Material(
-                        color: theme.accent,
-                        borderRadius:
-                            BorderRadius.circular(8),
-                        child: InkWell(
-                          borderRadius:
-                              BorderRadius.circular(8),
-                          onTap: _handleSend,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Center(
-                                child: Icon(
-                                  bus.isStreaming
-                                      ? Icons.playlist_add
-                                      : Icons.send_rounded,
-                                  size: theme.iconSizeMd,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    filled: true,
+                    fillColor: inputFillColor,
+                    contentPadding: inputContentPadding,
+                    hintText: '输入消息…',
+                    hintStyle: TextStyle(color: theme.textPlaceholder),
+                    enabledBorder: underlineBorder,
+                    focusedBorder: underlineBorder,
+                    border: underlineBorder,
+                  ),
                 ),
               ),
-            ),
+              SizedBox(width: 4),
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: Material(
+                  color: theme.accent,
+                  borderRadius: BorderRadius.circular(4),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: _handleSend,
+                    child: Center(
+                      child: Icon(
+                        bus.isStreaming
+                            ? Icons.playlist_add
+                            : Icons.send_rounded,
+                        size: theme.iconSizeMd,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          // Badge — outside ClipRRect to avoid clipping
+          // Badge — outside Row to avoid layout interference
           if (bus.queueCount > 0)
             Positioned(
               right: -6,
               top: -6,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 4),
-                constraints: const BoxConstraints(
-                    minWidth: 18, minHeight: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 decoration: BoxDecoration(
                   color: theme.error,
                   borderRadius: BorderRadius.circular(8),
@@ -442,10 +446,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             Positioned(
               right: 0,
               bottom: 60,
-              child: _QueuePopupContent(
-                bus: bus,
-                onClose: _toggleQueue,
-              ),
+              child: _QueuePopupContent(bus: bus, onClose: _toggleQueue),
             ),
         ],
       ),
@@ -453,6 +454,90 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 }
 
+// ═══════════════════════════════════════════════════════
+//  Accent Underline Border — animated expand-from-center
+// ═══════════════════════════════════════════════════════
+
+class _AccentUnderlineBorder extends InputBorder {
+  final double animationValue;
+  final Color accentColor;
+
+  const _AccentUnderlineBorder({
+    required this.animationValue,
+    required this.accentColor,
+    super.borderSide = const BorderSide(color: Color(0xFF484848), width: 1),
+  });
+
+  @override
+  bool get isOutline => false;
+
+  @override
+  EdgeInsetsGeometry get dimensions =>
+      EdgeInsets.only(bottom: borderSide.width);
+
+  @override
+  _AccentUnderlineBorder copyWith({BorderSide? borderSide}) =>
+      _AccentUnderlineBorder(
+        animationValue: animationValue,
+        accentColor: accentColor,
+        borderSide: borderSide ?? this.borderSide,
+      );
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    double? gapStart,
+    double gapExtent = 0.0,
+    double gapPercentage = 0.0,
+    TextDirection? textDirection,
+  }) {
+    final y = rect.bottom - 0.5;
+    // 1px base line — always visible
+    canvas.drawLine(
+      Offset(rect.left, y),
+      Offset(rect.right, y),
+      Paint()
+        ..color = borderSide.color
+        ..strokeWidth = 1.0,
+    );
+
+    // 2px accent line — expands from center on focus
+    if (animationValue > 0.001) {
+      final t = animationValue;
+      final spread = 0.5 * t;
+      final r = Rect.fromLTWH(rect.left, rect.bottom - 2, rect.width, 2);
+      canvas.drawRect(
+        r,
+        Paint()
+          ..shader = LinearGradient(
+            colors: [
+              Colors.transparent,
+              accentColor,
+              accentColor,
+              Colors.transparent,
+            ],
+            stops: [0, 0.5 - spread, 0.5 + spread, 1],
+          ).createShader(r),
+      );
+    }
+  }
+
+  @override
+  ShapeBorder scale(double t) => _AccentUnderlineBorder(
+    animationValue: animationValue,
+    accentColor: accentColor,
+    borderSide: borderSide.scale(t),
+  );
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
+      Path()..addRect(rect);
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
+      Path()..addRect(rect);
+}
 
 // ═══════════════════════════════════════════════════════
 //  Last User Sticky Header
@@ -507,8 +592,7 @@ class _LastUserStickyHeader extends StatelessWidget {
         child: Stack(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: padH, vertical: padV),
+              padding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
               child: Text(
                 message,
                 style: TextStyle(
@@ -549,8 +633,7 @@ class _LastUserStickyHeader extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: theme.accentLight
-                            .withValues(alpha: 0.75),
+                        color: theme.accentLight.withValues(alpha: 0.75),
                       ),
                     ),
                   ),
@@ -571,16 +654,19 @@ class _LastUserStickyHeader extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: theme.bgSurface,
-            borderRadius:
-                BorderRadius.circular(theme.radiusXl),
+            borderRadius: BorderRadius.circular(theme.radiusXl),
           ),
           clipBehavior: Clip.hardEdge,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(theme.spacingLg,
-                    theme.spacingMd, theme.spacingSm, 0),
+                padding: EdgeInsets.fromLTRB(
+                  theme.spacingLg,
+                  theme.spacingMd,
+                  theme.spacingSm,
+                  0,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -596,11 +682,12 @@ class _LastUserStickyHeader extends StatelessWidget {
                     InkWell(
                       onTap: () => Navigator.of(ctx).pop(),
                       child: Padding(
-                        padding:
-                            EdgeInsets.all(theme.spacingSm),
-                        child: Icon(Icons.close,
-                            color: theme.textSecondary,
-                            size: 20),
+                        padding: EdgeInsets.all(theme.spacingSm),
+                        child: Icon(
+                          Icons.close,
+                          color: theme.textSecondary,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -609,8 +696,7 @@ class _LastUserStickyHeader extends StatelessWidget {
               const Divider(height: 1),
               Flexible(
                 child: SingleChildScrollView(
-                  padding:
-                      EdgeInsets.all(theme.spacingLg),
+                  padding: EdgeInsets.all(theme.spacingLg),
                   child: Text(
                     message,
                     style: TextStyle(
@@ -629,14 +715,12 @@ class _LastUserStickyHeader extends StatelessWidget {
   }
 }
 
-
 // ═══════════════════════════════════════════════════════
 //  User Message Header — height calculation helper
 // ═══════════════════════════════════════════════════════
 
 class _UserMsgHeaderDelegate {
-  static double computeHeight(
-      String text, ChatTheme theme, double vpWidth) {
+  static double computeHeight(String text, ChatTheme theme, double vpWidth) {
     final lineHeight = theme.fontSizeLg * 1.5;
     final padH = theme.spacingLg;
     final padV = theme.spacingSm + 2;
@@ -655,12 +739,10 @@ class _UserMsgHeaderDelegate {
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: contentWidth);
 
-    final textHeight =
-        tp.didExceedMaxLines ? lineHeight * 3 : tp.height;
+    final textHeight = tp.didExceedMaxLines ? lineHeight * 3 : tp.height;
     return padV * 2 + textHeight;
   }
 }
-
 
 // ═══════════════════════════════════════════════════════
 //  Queue Popup
@@ -670,10 +752,7 @@ class _QueuePopupContent extends StatelessWidget {
   final ChatBus bus;
   final VoidCallback onClose;
 
-  const _QueuePopupContent({
-    required this.bus,
-    required this.onClose,
-  });
+  const _QueuePopupContent({required this.bus, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -702,7 +781,11 @@ class _QueuePopupContent extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  theme.spacingLg, theme.spacingMd, theme.spacingSm, theme.spacingSm),
+                theme.spacingLg,
+                theme.spacingMd,
+                theme.spacingSm,
+                theme.spacingSm,
+              ),
               child: Row(
                 children: [
                   Text(
@@ -749,8 +832,9 @@ class _QueuePopupContent extends StatelessWidget {
                       separatorBuilder: (_, _) =>
                           Divider(height: 1, color: theme.borderLight),
                       itemBuilder: (_, i) => Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: theme.spacingXs),
+                        padding: EdgeInsets.symmetric(
+                          vertical: theme.spacingXs,
+                        ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
