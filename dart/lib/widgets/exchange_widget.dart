@@ -41,20 +41,24 @@ class ExchangeWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
-      children: blocks.asMap().entries.map((entry) {
-        final idx = entry.key;
-        final block = entry.value;
-        final isLast = idx == expandedIndex;
-        return _BlockTimelineItem(
-          block: block,
-          bus: bus,
-          exchange: exchange,
-          isExpanded: isLast,
-          showDotColor: dotColorFor(block, theme),
-          headerColor: headerColorFor(block, theme),
-          isLastBlock: isLast,
-        );
-      }).toList(),
+      children: [
+        ...blocks.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final block = entry.value;
+          final isLast = idx == expandedIndex;
+          return _BlockTimelineItem(
+            block: block,
+            bus: bus,
+            exchange: exchange,
+            isExpanded: isLast,
+            showDotColor: dotColorFor(block, theme),
+            headerColor: headerColorFor(block, theme),
+            isLastBlock: isLast,
+          );
+        }),
+        if (shouldShowThinkingPlaceholder(exchange))
+          buildThinkingPlaceholder(context, exchange),
+      ],
     );
   }
 }
@@ -99,25 +103,95 @@ Widget buildExchangeTimeline(
 
   final expandedIndex = allBlocks.length - 1;
 
+  final items = allBlocks.asMap().entries.map((entry) {
+    final idx = entry.key;
+    final block = entry.value;
+    return _BlockTimelineItem(
+      key: blockKeys?[idx],
+      block: block,
+      bus: bus,
+      exchange: exchange,
+      isExpanded: idx == expandedIndex,
+      showDotColor: dotColorFor(block, theme),
+      headerColor: headerColorFor(block, theme),
+      collapsed: collapsedBlockIds?.contains(block.id) ?? false,
+      onCollapsedChanged: onCollapsedChanged,
+      isLastBlock: idx == expandedIndex,
+    );
+  }).toList();
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
-    children: allBlocks.asMap().entries.map((entry) {
-      final idx = entry.key;
-      final block = entry.value;
-      return _BlockTimelineItem(
-        key: blockKeys?[idx],
-        block: block,
-        bus: bus,
-        exchange: exchange,
-        isExpanded: idx == expandedIndex,
-        showDotColor: dotColorFor(block, theme),
-        headerColor: headerColorFor(block, theme),
-        collapsed: collapsedBlockIds?.contains(block.id) ?? false,
-        onCollapsedChanged: onCollapsedChanged,
-        isLastBlock: idx == expandedIndex,
+    children: [
+      ...items,
+      if (shouldShowThinkingPlaceholder(exchange))
+        buildThinkingPlaceholder(context, exchange),
+    ],
+  );
+}
+
+/// 当 exchange 正在处理且无 active block 时显示"正在思考"占位。
+bool shouldShowThinkingPlaceholder(Exchange exchange) {
+  if (exchange.status != ExchangeStatus.processing) return false;
+  if (exchange.groups.isEmpty) return false;
+  return !exchange.groups
+      .expand((g) => g.blocks)
+      .any(
+        (b) =>
+            b.status == BlockStatus.running || b.status == BlockStatus.pending,
       );
-    }).toList(),
+}
+
+/// "正在思考"占位 widget — 圆点 + 文字，样式同 block 标题。
+Widget buildThinkingPlaceholder(BuildContext context, Exchange exchange) {
+  final theme = ChatTheme.of(context);
+  return Padding(
+    padding: EdgeInsets.only(left: theme.spacingLg),
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: -17,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.bgPrimary,
+                border: Border.all(color: theme.dotThinking, width: 2),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(10, 6, 0, 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.psychology_outlined,
+                size: theme.iconSizeSm,
+                color: theme.headerThinking,
+              ),
+              SizedBox(width: 6),
+              Text(
+                '正在思考',
+                style: TextStyle(
+                  fontSize: theme.fontSizeSm,
+                  fontWeight: FontWeight.w500,
+                  color: theme.headerThinking,
+                  letterSpacing: 0.24,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
   );
 }
 

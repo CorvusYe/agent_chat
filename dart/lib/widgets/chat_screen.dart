@@ -296,6 +296,14 @@ class _ChatScreenState extends State<ChatScreen>
         groupSlivers.add(SliverMainAxisGroup(slivers: innerSlivers));
       }
 
+      if (shouldShowThinkingPlaceholder(exchange)) {
+        groupSlivers.add(
+          SliverToBoxAdapter(
+            child: buildThinkingPlaceholder(context, exchange),
+          ),
+        );
+      }
+
       slivers.add(SliverMainAxisGroup(slivers: groupSlivers));
     }
     return slivers;
