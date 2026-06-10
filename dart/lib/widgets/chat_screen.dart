@@ -42,6 +42,9 @@ class _ChatScreenState extends State<ChatScreen>
   Timer? _statsTimer;
   late final AnimationController _focusAnimCtrl;
 
+  int _lastExchangeCount = 0;
+  int _lastBlockCount = 0;
+
   /// Blocks the user manually expanded — override auto-collapse.
   final Set<String> _manuallyExpandedKeys = {};
 
@@ -72,7 +75,10 @@ class _ChatScreenState extends State<ChatScreen>
     bus.addListener(_onBusChanged);
     bus.init();
     _statsTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      if (bus.isStreaming && mounted) setState(() {});
+      if (bus.isStreaming && mounted) {
+        setState(() {});
+        _scrollToBottomIfNearEnd();
+      }
     });
   }
 
@@ -89,7 +95,36 @@ class _ChatScreenState extends State<ChatScreen>
   }
 
   void _onBusChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final exCount = bus.exchanges.length;
+    final blockCount = bus.exchanges.fold<int>(
+      0,
+      (sum, ex) => sum + ex.groups.fold<int>(0, (s, g) => s + g.blocks.length),
+    );
+    final shouldScroll = exCount > _lastExchangeCount || blockCount > _lastBlockCount;
+    _lastExchangeCount = exCount;
+    _lastBlockCount = blockCount;
+    setState(() {});
+    if (shouldScroll) _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollCtrl.hasClients) return;
+      _scrollCtrl.animateTo(
+        _scrollCtrl.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  void _scrollToBottomIfNearEnd() {
+    if (!_scrollCtrl.hasClients) return;
+    final maxScroll = _scrollCtrl.position.maxScrollExtent;
+    final currentScroll = _scrollCtrl.position.pixels;
+    if (maxScroll - currentScroll > 150) return; // not near end, skip
+    _scrollCtrl.jumpTo(maxScroll);
   }
 
   /// Whether this block is the single latest block across all exchanges.
