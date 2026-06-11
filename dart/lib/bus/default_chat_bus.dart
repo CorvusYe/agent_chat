@@ -158,15 +158,15 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
         switch (event) {
           case ThinkingStarted e:
             _blockStartTimes[e.blockId] = DateTime.now();
-            pendingBlocks.add(
-              ChatBlock(
-                id: e.blockId,
-                type: BlockType.thinking,
-                content: '',
-                status: BlockStatus.running,
-                startTime: DateTime.now(),
-              ),
+            final tb = ChatBlock(
+              id: e.blockId,
+              type: BlockType.thinking,
+              content: '',
+              status: BlockStatus.running,
+              startTime: DateTime.now(),
             );
+            pendingBlocks.add(tb);
+            _ensureBlockInExchange(exchangeId, tb);
 
           case ThinkingDelta e:
             _updateBlockSafe(
@@ -175,6 +175,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
               e.blockId,
               (b) => b.copyWith(content: e.text),
             );
+            _syncPendingToExchange(exchangeId, pendingBlocks);
 
           case ThinkingCompleted e:
             _updateBlockSafe(
@@ -186,6 +187,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: BlockStatus.completed,
               ),
             );
+            _syncPendingToExchange(exchangeId, pendingBlocks);
             _notifyBlockCompleted(exchangeId, e.blockId);
 
           case ToolCallStarted e:
@@ -204,19 +206,19 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             } else {
               effectiveStatus = BlockStatus.running;
             }
-            pendingBlocks.add(
-              ChatBlock(
-                id: e.blockId,
-                type: BlockType.tool,
-                toolName: e.toolName,
-                toolArgs: e.arguments,
-                requiresConfirm: e.requiresConfirm && !autoApproved,
-                canAlwaysAllow: e.canAlwaysAllow,
-                description: e.description,
-                status: effectiveStatus,
-                startTime: DateTime.now(),
-              ),
+            final tcb = ChatBlock(
+              id: e.blockId,
+              type: BlockType.tool,
+              toolName: e.toolName,
+              toolArgs: e.arguments,
+              requiresConfirm: e.requiresConfirm && !autoApproved,
+              canAlwaysAllow: e.canAlwaysAllow,
+              description: e.description,
+              status: effectiveStatus,
+              startTime: DateTime.now(),
             );
+            pendingBlocks.add(tcb);
+            _ensureBlockInExchange(exchangeId, tcb);
 
           case ToolCallDelta e:
             _updateBlockSafe(
@@ -227,6 +229,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 toolResult: (b.toolResult ?? '') + e.resultFragment,
               ),
             );
+            _syncPendingToExchange(exchangeId, pendingBlocks);
 
           case ToolCallCompleted e:
             _updateBlockSafe(
@@ -238,19 +241,20 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: BlockStatus.completed,
               ),
             );
+            _syncPendingToExchange(exchangeId, pendingBlocks);
             _notifyBlockCompleted(exchangeId, e.blockId);
 
           case ContentStarted e:
             _blockStartTimes[e.blockId] = DateTime.now();
-            pendingBlocks.add(
-              ChatBlock(
-                id: e.blockId,
-                type: BlockType.content,
-                content: '',
-                status: BlockStatus.running,
-                startTime: DateTime.now(),
-              ),
+            final cb = ChatBlock(
+              id: e.blockId,
+              type: BlockType.content,
+              content: '',
+              status: BlockStatus.running,
+              startTime: DateTime.now(),
             );
+            pendingBlocks.add(cb);
+            _ensureBlockInExchange(exchangeId, cb);
 
           case ContentDelta e:
             _updateBlockSafe(
@@ -259,6 +263,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
               e.blockId,
               (b) => b.copyWith(content: e.text),
             );
+            _syncPendingToExchange(exchangeId, pendingBlocks);
 
           case ContentCompleted e:
             _updateBlockSafe(
@@ -270,13 +275,14 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                 status: BlockStatus.completed,
               ),
             );
+            _syncPendingToExchange(exchangeId, pendingBlocks);
             _notifyBlockCompleted(exchangeId, e.blockId);
 
           case TokenCount e:
             _totalTokens += e.count;
 
           case ParallelBoundary _:
-            _flushGroup(exchangeId, pendingBlocks);
+            _replaceFlushGroup(exchangeId, pendingBlocks);
             pendingBlocks = [];
 
           case ExchangeError e:
@@ -299,7 +305,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             _globalAlwaysAllow != event.toolName &&
             !event.autoApproved) {
           // 先 flush 当前批 blocks，让确认门可以渲染
-          _flushGroup(exchangeId, pendingBlocks);
+          _replaceFlushGroup(exchangeId, pendingBlocks);
           pendingBlocks = [];
           _updateExchange(
             exchangeId,
@@ -350,7 +356,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
 
       // 刷新最后一批 blocks
       if (pendingBlocks.isNotEmpty) {
-        _flushGroup(exchangeId, pendingBlocks);
+        _replaceFlushGroup(exchangeId, pendingBlocks);
       }
       final isCancelled = _exchanges
           .where((e) => e.id == exchangeId)
@@ -389,6 +395,63 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
       exchangeId,
       (ex) => ex.copyWith(groups: [...ex.groups, group]),
     );
+  }
+
+  /// Ensure [block] is visible in the exchange. Creates a single-block group
+  /// if not already present, so the UI can render the block immediately.
+  void _ensureBlockInExchange(String exchangeId, ChatBlock block) {
+    final idx = _exchanges.indexWhere((e) => e.id == exchangeId);
+    if (idx == -1) return;
+    final existing = _exchanges[idx];
+    final allIds = existing.groups
+        .expand((g) => g.blocks)
+        .map((b) => b.id)
+        .toSet();
+    if (!allIds.contains(block.id)) {
+      _exchanges[idx] = existing.copyWith(
+        groups: [
+          ...existing.groups,
+          BlockGroup(id: 'g_${_groupCounter++}', blocks: [block]),
+        ],
+      );
+    }
+  }
+
+  /// Sync pending blocks into exchange groups so delta updates are reflected
+  /// in the UI in real time (enables typewriter effect).
+  void _syncPendingToExchange(
+    String exchangeId,
+    List<ChatBlock> pendingBlocks,
+  ) {
+    for (final block in pendingBlocks) {
+      _updateBlockById(exchangeId, block.id, (_) => block);
+    }
+  }
+
+  /// Replace-flush: write [blocks] as a single group, replacing any pre-existing
+  /// groups that contain these block IDs. Prevents duplicates from prior
+  /// [_ensureBlockInExchange] calls while keeping the combined group intact.
+  void _replaceFlushGroup(String exchangeId, List<ChatBlock> blocks) {
+    if (blocks.isEmpty) return;
+    final ids = blocks.map((b) => b.id).toSet();
+    final group = BlockGroup(
+      id: 'g_${_groupCounter++}',
+      blocks: List.of(blocks),
+    );
+    _updateExchange(exchangeId, (ex) {
+      final hasExisting = ex.groups.any(
+        (g) => g.blocks.any((b) => ids.contains(b.id)),
+      );
+      if (!hasExisting) {
+        return ex.copyWith(groups: [...ex.groups, group]);
+      }
+      return ex.copyWith(
+        groups: [
+          ...ex.groups.where((g) => !g.blocks.any((b) => ids.contains(b.id))),
+          group,
+        ],
+      );
+    });
   }
 
   void _notifyBlockCompleted(String exchangeId, String blockId) {

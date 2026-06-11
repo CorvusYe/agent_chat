@@ -127,12 +127,15 @@ class _ThinkingBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    return Text(
-      block.content ?? '',
-      style: TextStyle(
-        color: theme.textSecondary,
-        fontSize: theme.fontSizeMd,
-        height: 1.5,
+    return SizedBox(
+      width: double.infinity,
+      child: Text(
+        block.content ?? '',
+        style: TextStyle(
+          color: theme.textSecondary,
+          fontSize: theme.fontSizeMd,
+          height: 1.5,
+        ),
       ),
     );
   }
@@ -230,12 +233,15 @@ class _ContentBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    return Text(
-      block.content ?? '',
-      style: TextStyle(
-        color: theme.textContent,
-        fontSize: theme.fontSizeLg,
-        height: 1.6,
+    return SizedBox(
+      width: double.infinity,
+      child: Text(
+        block.content ?? '',
+        style: TextStyle(
+          color: theme.textContent,
+          fontSize: theme.fontSizeLg,
+          height: 1.6,
+        ),
       ),
     );
   }
