@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/exchange.dart';
 import '../models/chat_block.dart';
@@ -143,56 +144,9 @@ bool shouldShowThinkingPlaceholder(Exchange exchange) {
       );
 }
 
-/// "正在思考"占位 widget — 圆点 + 文字，样式同 block 标题。
+/// "正在思考"占位 widget — 旋转环圆点 + 心跳脉冲文字，样式同 block 标题。
 Widget buildThinkingPlaceholder(BuildContext context, Exchange exchange) {
-  final theme = ChatTheme.of(context);
-  return Padding(
-    padding: EdgeInsets.only(left: theme.spacingLg),
-    child: Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: -17,
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.bgPrimary,
-                border: Border.all(color: theme.dotThinking, width: 2),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(10, 6, 0, 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.psychology_outlined,
-                size: theme.iconSizeSm,
-                color: theme.headerThinking,
-              ),
-              SizedBox(width: 6),
-              Text(
-                '正在思考',
-                style: TextStyle(
-                  fontSize: theme.fontSizeSm,
-                  fontWeight: FontWeight.w500,
-                  color: theme.headerThinking,
-                  letterSpacing: 0.24,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+  return const _ThinkingPlaceholder();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -459,15 +413,29 @@ class _BlockTimelineItem extends StatefulWidget {
   State<_BlockTimelineItem> createState() => _BlockTimelineItemState();
 }
 
-class _BlockTimelineItemState extends State<_BlockTimelineItem> {
+class _BlockTimelineItemState extends State<_BlockTimelineItem>
+    with TickerProviderStateMixin {
   bool _expanded = true;
   Timer? _elapsedTimer;
+  AnimationController? _breathingCtrl;
+  AnimationController? _rotationCtrl;
+
+  bool get _isRunning =>
+      widget.block.status == BlockStatus.running ||
+      widget.block.status == BlockStatus.pending;
 
   @override
   void initState() {
     super.initState();
     _expanded = !widget.collapsed;
     _updateElapsedTimer();
+    // _initAnimations deferred to didChangeDependencies — needs theme
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initAnimations();
   }
 
   @override
@@ -483,12 +451,45 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
         widget.block.startTime != old.block.startTime) {
       _updateElapsedTimer();
     }
+    if (widget.block.status != old.block.status) {
+      _initAnimations();
+    }
   }
 
   @override
   void dispose() {
     _elapsedTimer?.cancel();
+    _breathingCtrl?.dispose();
+    _rotationCtrl?.dispose();
     super.dispose();
+  }
+
+  void _initAnimations() {
+    if (_isRunning && _breathingCtrl == null) {
+      final theme = ChatTheme.of(context);
+      _breathingCtrl = AnimationController(
+        vsync: this,
+        duration: theme.breathingDuration,
+      );
+      _breathingCtrl!.addListener(() {
+        if (mounted) setState(() {});
+      });
+      _breathingCtrl!.repeat(reverse: true);
+
+      _rotationCtrl = AnimationController(
+        vsync: this,
+        duration: theme.rotationDuration,
+      );
+      _rotationCtrl!.addListener(() {
+        if (mounted) setState(() {});
+      });
+      _rotationCtrl!.repeat();
+    } else if (!_isRunning && _breathingCtrl != null) {
+      _breathingCtrl?.dispose();
+      _breathingCtrl = null;
+      _rotationCtrl?.dispose();
+      _rotationCtrl = null;
+    }
   }
 
   void _updateElapsedTimer() {
@@ -513,6 +514,16 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
+    final lineColor = _isRunning && _breathingCtrl != null
+        ? widget.showDotColor.withValues(
+            alpha: 0.5 + 0.5 * _breathingCtrl!.value,
+          )
+        : widget.showDotColor;
+    final animatedHeaderColor = _isRunning && _breathingCtrl != null
+        ? widget.headerColor.withValues(
+            alpha: 0.5 + 0.5 * _breathingCtrl!.value,
+          )
+        : widget.headerColor;
 
     return Padding(
       padding: EdgeInsets.only(left: theme.spacingLg),
@@ -524,7 +535,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
             left: -12,
             top: 12,
             bottom: widget.isLastBlock ? 8 : 0,
-            child: Container(width: 2, color: widget.showDotColor),
+            child: Container(width: 2, color: lineColor),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,18 +550,26 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
                     top: 0,
                     bottom: 0,
                     child: Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: theme.bgPrimary,
-                          border: Border.all(
-                            color: widget.showDotColor,
-                            width: 2,
-                          ),
-                        ),
-                      ),
+                      child: _isRunning && _rotationCtrl != null
+                          ? SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CustomPaint(
+                                painter: RunningDotPainter(
+                                  color: widget.showDotColor,
+                                  rotation: _rotationCtrl!.value,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: theme.bgPrimary,
+                                border: Border.all(color: lineColor, width: 2),
+                              ),
+                            ),
                     ),
                   ),
                   InkWell(
@@ -559,7 +578,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
                       context: context,
                       icon: _iconFor(widget.block),
                       label: _labelFor(widget.block),
-                      color: widget.headerColor,
+                      color: animatedHeaderColor,
                       theme: theme,
                       showChevron: true,
                       expanded: _expanded,
@@ -600,4 +619,280 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem> {
   String _labelFor(ChatBlock block) => labelForBlock(block);
 
   IconData _iconFor(ChatBlock block) => iconForBlock(block);
+}
+
+// ═══════════════════════════════════════════════════════
+//  Running Dot Painter — 旋转环 + 极坐标透明度渐变
+// ═══════════════════════════════════════════════════════
+
+class RunningDotPainter extends CustomPainter {
+  final Color color;
+  final double rotation;
+
+  RunningDotPainter({required this.color, required this.rotation});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - 4) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    // 基础圆环（微光）— 提示圆的位置
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..color = color.withValues(alpha: 0.1);
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // 用画布旋转代替改角度，避免 SweepGradient 在 0° wrap 跳变
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation * 2 * pi);
+    canvas.translate(-center.dx, -center.dy);
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+
+    // 无缝全圆渐变：左侧带头不透明 → 顺时针渐隐到右侧透明 → 左侧不透明收尾
+    paint.shader = SweepGradient(
+      startAngle: -pi,
+      endAngle: pi,
+      colors: [
+        color.withValues(alpha: 1.0),
+        color.withValues(alpha: 0.0),
+        color.withValues(alpha: 1.0),
+      ],
+      stops: const [0.0, 0.5, 1.0],
+    ).createShader(rect);
+
+    canvas.drawCircle(center, radius, paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(RunningDotPainter old) => old.rotation != rotation;
+}
+
+// ═══════════════════════════════════════════════════════
+//  AnimValues & BlockAnimController — 共用的呼吸/旋转动画
+// ═══════════════════════════════════════════════════════
+
+/// Animation values exposed by [BlockAnimController] during a block's running state.
+class AnimValues {
+  final bool isActive;
+  final double breathingValue;
+  final double rotationValue;
+
+  const AnimValues({
+    this.isActive = false,
+    this.breathingValue = 0.0,
+    this.rotationValue = 0.0,
+  });
+
+  Color applyBreathing(Color base) =>
+      isActive ? base.withValues(alpha: 0.5 + 0.5 * breathingValue) : base;
+}
+
+/// Hosts breathing + rotation animations for a running block.
+///
+/// Calls [builder] on every animation tick so the parent can render
+/// animated colors/shapes. The animation repeats until the block
+/// transitions out of running/pending status.
+class BlockAnimController extends StatefulWidget {
+  final ChatBlock block;
+  final Widget Function(BuildContext context, AnimValues anim) builder;
+
+  const BlockAnimController({
+    super.key,
+    required this.block,
+    required this.builder,
+  });
+
+  @override
+  State<BlockAnimController> createState() => _BlockAnimControllerState();
+}
+
+class _BlockAnimControllerState extends State<BlockAnimController>
+    with TickerProviderStateMixin {
+  AnimationController? _breathingCtrl;
+  AnimationController? _rotationCtrl;
+
+  bool get _isRunning =>
+      widget.block.status == BlockStatus.running ||
+      widget.block.status == BlockStatus.pending;
+
+  @override
+  void initState() {
+    super.initState();
+    // _initAnimations deferred to didChangeDependencies — needs theme
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initAnimations();
+  }
+
+  @override
+  void didUpdateWidget(BlockAnimController old) {
+    super.didUpdateWidget(old);
+    if (widget.block.status != old.block.status) {
+      _initAnimations();
+    }
+  }
+
+  @override
+  void dispose() {
+    _breathingCtrl?.dispose();
+    _rotationCtrl?.dispose();
+    super.dispose();
+  }
+
+  void _initAnimations() {
+    if (_isRunning && _breathingCtrl == null) {
+      final theme = ChatTheme.of(context);
+      _breathingCtrl = AnimationController(
+        vsync: this,
+        duration: theme.breathingDuration,
+      );
+      _breathingCtrl!.addListener(() {
+        if (mounted) setState(() {});
+      });
+      _breathingCtrl!.repeat(reverse: true);
+
+      _rotationCtrl = AnimationController(
+        vsync: this,
+        duration: theme.rotationDuration,
+      );
+      _rotationCtrl!.addListener(() {
+        if (mounted) setState(() {});
+      });
+      _rotationCtrl!.repeat();
+    } else if (!_isRunning && _breathingCtrl != null) {
+      _breathingCtrl?.dispose();
+      _breathingCtrl = null;
+      _rotationCtrl?.dispose();
+      _rotationCtrl = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(
+      context,
+      AnimValues(
+        isActive: _isRunning && _breathingCtrl != null,
+        breathingValue: _breathingCtrl?.value ?? 0.0,
+        rotationValue: _rotationCtrl?.value ?? 0.0,
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  Thinking Placeholder — 心跳脉冲 + 旋转环
+// ═══════════════════════════════════════════════════════
+
+class _ThinkingPlaceholder extends StatefulWidget {
+  const _ThinkingPlaceholder();
+
+  @override
+  State<_ThinkingPlaceholder> createState() => _ThinkingPlaceholderState();
+}
+
+class _ThinkingPlaceholderState extends State<_ThinkingPlaceholder>
+    with TickerProviderStateMixin {
+  AnimationController? _breathingCtrl;
+  AnimationController? _rotationCtrl;
+  bool _depsReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_depsReady) return;
+    _depsReady = true;
+    final theme = ChatTheme.of(context);
+    _breathingCtrl =
+        AnimationController(
+            vsync: this,
+            duration: theme.placeholderBreathingDuration,
+          )
+          ..addListener(() {
+            if (mounted) setState(() {});
+          })
+          ..repeat(reverse: true);
+
+    _rotationCtrl =
+        AnimationController(vsync: this, duration: theme.rotationDuration)
+          ..addListener(() {
+            if (mounted) setState(() {});
+          })
+          ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _breathingCtrl?.dispose();
+    _rotationCtrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ChatTheme.of(context);
+    final pulseOpacity = 0.5 + 0.5 * (_breathingCtrl?.value ?? 0.0);
+
+    return Padding(
+      padding: EdgeInsets.only(left: theme.spacingLg),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 旋转环圆点（不参与脉冲，保持 SweepGradient 可见）
+          Positioned(
+            left: -17,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: SizedBox(
+                width: 12,
+                height: 12,
+                child: CustomPaint(
+                  painter: RunningDotPainter(
+                    color: theme.dotThinking,
+                    rotation: _rotationCtrl?.value ?? 0.0,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // 心跳脉冲文字
+          Padding(
+            padding: EdgeInsets.fromLTRB(10, 6, 0, 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.psychology_outlined,
+                  size: theme.iconSizeSm,
+                  color: theme.headerThinking.withValues(alpha: pulseOpacity),
+                ),
+                SizedBox(width: 6),
+                Text(
+                  '正在思考',
+                  style: TextStyle(
+                    fontSize: theme.fontSizeSm,
+                    fontWeight: FontWeight.w500,
+                    color: theme.headerThinking.withValues(alpha: pulseOpacity),
+                    letterSpacing: 0.24,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

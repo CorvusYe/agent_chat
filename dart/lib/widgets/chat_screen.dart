@@ -317,29 +317,38 @@ class _ChatScreenState extends State<ChatScreen>
     Exchange exchange,
     double viewportHeight,
   ) {
-    return Padding(
-      padding: theme.blockPadding,
-      child: Stack(
-        children: [
-          // 左侧竖线
-          Positioned(
-            left: 4,
-            top: 0,
-            bottom: 0,
-            child: Container(width: 2, color: dotColorFor(block, theme)),
-          ),
-          // 内容
-          Padding(
-            padding: EdgeInsets.only(left: 20),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: viewportHeight * 0.618),
-              child: SingleChildScrollView(
-                child: BlockRegistry.build(context, block, bus, exchange),
+    return BlockAnimController(
+      block: block,
+      builder: (context, anim) {
+        final lineColor = anim.applyBreathing(dotColorFor(block, theme));
+
+        return Padding(
+          padding: theme.blockPadding,
+          child: Stack(
+            children: [
+              // 左侧竖线
+              Positioned(
+                left: 4,
+                top: 0,
+                bottom: 0,
+                child: Container(width: 2, color: lineColor),
               ),
-            ),
+              // 内容
+              Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: viewportHeight * 0.618,
+                  ),
+                  child: SingleChildScrollView(
+                    child: BlockRegistry.build(context, block, bus, exchange),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -364,50 +373,67 @@ class _ChatScreenState extends State<ChatScreen>
   ) {
     final collapseKey = '${exchange.id}_${block.id}';
     final collapsed = _isCollapsed(block, exchange);
-    final dotColor = dotColorFor(block, theme);
     final sub = collapsed ? _firstParagraph(block) : null;
 
-    return SizedBox(
-      height: 28.0,
-      child: Padding(
-        padding: EdgeInsets.only(left: theme.spacingLg),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              left: -17,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.bgPrimary,
-                    border: Border.all(color: dotColor, width: 2),
+    return BlockAnimController(
+      block: block,
+      builder: (context, anim) {
+        final dotColor = dotColorFor(block, theme);
+
+        return SizedBox(
+          height: 28.0,
+          child: Padding(
+            padding: EdgeInsets.only(left: theme.spacingLg),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: -17,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: anim.isActive
+                        ? SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CustomPaint(
+                              painter: RunningDotPainter(
+                                color: dotColor,
+                                rotation: anim.rotationValue,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.bgPrimary,
+                              border: Border.all(color: dotColor, width: 2),
+                            ),
+                          ),
                   ),
                 ),
-              ),
+                InkWell(
+                  onTap: () => _onToggleCollapsed(collapseKey, collapsed),
+                  child: buildBlockHeader(
+                    context: context,
+                    icon: iconForBlock(block),
+                    label: labelForBlock(block),
+                    color: anim.applyBreathing(headerColorFor(block, theme)),
+                    theme: theme,
+                    showChevron: true,
+                    expanded: !collapsed,
+                    subtitle: sub,
+                    startTime: block.startTime,
+                    elapsed: block.elapsed,
+                  ),
+                ),
+              ],
             ),
-            InkWell(
-              onTap: () => _onToggleCollapsed(collapseKey, collapsed),
-              child: buildBlockHeader(
-                context: context,
-                icon: iconForBlock(block),
-                label: labelForBlock(block),
-                color: headerColorFor(block, theme),
-                theme: theme,
-                showChevron: true,
-                expanded: !collapsed,
-                subtitle: sub,
-                startTime: block.startTime,
-                elapsed: block.elapsed,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

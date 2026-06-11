@@ -110,6 +110,13 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double inputMinHeight;
   final double contentMaxHeight;
 
+  // ═══════════════════════════════════════
+  //  动画周期
+  // ═══════════════════════════════════════
+  final Duration breathingDuration;
+  final Duration rotationDuration;
+  final Duration placeholderBreathingDuration;
+
   const ChatTheme({
     // 颜色
     required this.bgPrimary,
@@ -180,6 +187,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.buttonHeight = 32,
     this.inputMinHeight = 36,
     this.contentMaxHeight = 2000,
+    // 动画
+    this.breathingDuration = const Duration(milliseconds: 600),
+    this.rotationDuration = const Duration(milliseconds: 1000),
+    this.placeholderBreathingDuration = const Duration(milliseconds: 400),
   });
 
   static ChatTheme of(BuildContext context) {
@@ -300,6 +311,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? buttonHeight,
     double? inputMinHeight,
     double? contentMaxHeight,
+    Duration? breathingDuration,
+    Duration? rotationDuration,
+    Duration? placeholderBreathingDuration,
   }) {
     return ChatTheme(
       bgPrimary: bgPrimary ?? this.bgPrimary,
@@ -366,6 +380,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       buttonHeight: buttonHeight ?? this.buttonHeight,
       inputMinHeight: inputMinHeight ?? this.inputMinHeight,
       contentMaxHeight: contentMaxHeight ?? this.contentMaxHeight,
+      breathingDuration: breathingDuration ?? this.breathingDuration,
+      rotationDuration: rotationDuration ?? this.rotationDuration,
+      placeholderBreathingDuration:
+          placeholderBreathingDuration ?? this.placeholderBreathingDuration,
     );
   }
 
@@ -443,6 +461,11 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       contentMaxHeight:
           lerpDouble(contentMaxHeight, other.contentMaxHeight, t) ??
           contentMaxHeight,
+      breathingDuration: t < 0.5 ? breathingDuration : other.breathingDuration,
+      rotationDuration: t < 0.5 ? rotationDuration : other.rotationDuration,
+      placeholderBreathingDuration: t < 0.5
+          ? placeholderBreathingDuration
+          : other.placeholderBreathingDuration,
     );
   }
 }
