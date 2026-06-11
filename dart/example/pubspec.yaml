@@ -12,6 +12,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   agent_chat:
     path: ..
+  de_src:
+    path: ../../../../dudu-ltd/deepseek_reverse_call/dart
 
 dev_dependencies:
   flutter_test:

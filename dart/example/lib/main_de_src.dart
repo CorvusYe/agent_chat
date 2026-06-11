@@ -341,6 +341,25 @@ Future<void> _processWithTools(
     answerSettings.addAll({
       routerApi.value: (ActionArgs args) async {
         if (args.prev?['finished'] == true) return null;
+
+        // 处理 API 原生 tool_calls（OpenAI 风格流式函数调用）
+        if (args.toolCalls != null && args.toolCalls!.isNotEmpty) {
+          for (final tc in args.toolCalls!) {
+            final handler = answerSettings[tc.function.name];
+            if (handler == null) continue;
+            Map<String, dynamic> parsed = {};
+            if (tc.function.arguments is String) {
+              try {
+                parsed =
+                    json.decode(tc.function.arguments as String)
+                        as Map<String, dynamic>;
+              } catch (_) {}
+            }
+            return await handler(args.copyWith(prev: parsed));
+          }
+          return null;
+        }
+
         final router = args.prev?['router'] as String?;
         if (router == null || answerSettings[router] == null) return null;
         return await answerSettings[router]!(args);
