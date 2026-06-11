@@ -62,7 +62,7 @@ class _StatsBarState extends State<StatsBar>
       children: [
         _StatItem(
           icon: Icons.timeline,
-          label: _formatNumber(_displayed),
+          label: '${_formatNumber(_displayed)} 词元',
           color: theme.statColor,
         ),
       ],
