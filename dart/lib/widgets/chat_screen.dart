@@ -198,15 +198,36 @@ class _ChatScreenState extends State<ChatScreen>
       data: ThemeData(extensions: [chatTheme], brightness: Brightness.dark),
       child: Scaffold(
         backgroundColor: chatTheme.bgPrimary,
-        body: Padding(
-          padding: EdgeInsets.all(chatTheme.spacingWindow),
-          child: Column(
-            children: [
-              Expanded(child: _buildMessages(chatTheme)),
-              StatsBar(totalTokens: bus.totalTokens),
-              _buildInput(chatTheme),
+        body: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(chatTheme.spacingWindow),
+              child: Column(
+                children: [
+                  Expanded(child: _buildMessages(chatTheme)),
+                  StatsBar(totalTokens: bus.totalTokens),
+                  _buildInput(chatTheme),
+                ],
+              ),
+            ),
+            // 队列弹窗 + 外部点击屏障
+            if (_queueVisible) ...[
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () => setState(() => _queueVisible = false),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 60,
+                child: _QueuePopupContent(
+                  bus: bus,
+                  onClose: () => setState(() => _queueVisible = false),
+                ),
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -532,12 +553,6 @@ class _ChatScreenState extends State<ChatScreen>
                   textAlign: TextAlign.center,
                 ),
               ),
-            ),
-          if (_queueVisible)
-            Positioned(
-              right: 0,
-              bottom: 60,
-              child: _QueuePopupContent(bus: bus, onClose: _toggleQueue),
             ),
         ],
       ),
@@ -904,7 +919,7 @@ class _QueuePopupContent extends StatelessWidget {
               ),
             ),
             Divider(height: 1, color: theme.borderLight),
-            Flexible(
+            Expanded(
               child: items.isEmpty
                   ? Padding(
                       padding: EdgeInsets.all(theme.spacingLg),
@@ -918,7 +933,6 @@ class _QueuePopupContent extends StatelessWidget {
                     )
                   : ListView.separated(
                       padding: EdgeInsets.all(theme.spacingMd),
-                      shrinkWrap: true,
                       itemCount: items.length,
                       separatorBuilder: (_, _) =>
                           Divider(height: 1, color: theme.borderLight),
