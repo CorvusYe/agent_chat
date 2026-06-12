@@ -8,11 +8,12 @@ import 'package:integration_test/integration_test.dart';
 
 import 'package:agent_chat/agent_chat.dart';
 import 'package:de_src/de_src.dart';
+import 'package:agent_chat_example/api_config.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  端到端测试 — 真实 de_src API 调用
 //
-//  运行条件：网络可达 + _apiKey 有效（否则被跳过）
+//  运行条件：网络可达 + apiKey 有效（否则被跳过）
 //
 //  运行方式：
 //     cd dart/example
@@ -20,11 +21,8 @@ import 'package:de_src/de_src.dart';
 //       --target=integration_test/de_src_e2e_test.dart -d windows
 //
 //  注意：这些测试会消耗 API 额度，应在需要验证 API 集成时手动执行。
+//  API 配置统一在 api_config.dart 中管理，详见 api_config_template.dart。
 // ═══════════════════════════════════════════════════════════════════════════
-
-const _apiKey = 'YOUR_API_KEY';
-const _baseUrl = 'https://api.deepseek.com';
-const _modelId = 'deepseek-v4-flash';
 
 final _qaApi = DsrcApi(
   value: 'e2e-qa',
@@ -93,9 +91,9 @@ Future<void> _bridge(
     );
 
     final dsrc = DeepSeekReverseCall(
-      appKey: _apiKey,
-      baseUrl: _baseUrl,
-      modelId: _modelId,
+      appKey: apiKey,
+      baseUrl: baseUrl,
+      modelId: modelId,
       supportJson: true,
       stream: true,
     );
@@ -159,12 +157,12 @@ void main() {
 
   group('E2E: 纯 API 调用', () {
     test('API 连接', timeout: Timeout(Duration(seconds: 20)), () async {
-      final client = OpenAIClient.withApiKey(_apiKey, baseUrl: _baseUrl);
+      final client = OpenAIClient.withApiKey(apiKey, baseUrl: baseUrl);
       try {
         await client.chat.completions
             .create(
               ChatCompletionCreateRequest(
-                model: _modelId,
+                model: modelId,
                 messages: [ChatMessage.user(UserMessageContent.text('ping'))],
                 maxTokens: 5,
               ),
@@ -181,9 +179,9 @@ void main() {
       timeout: Timeout(Duration(seconds: 90)),
       () async {
         final dsrc = DeepSeekReverseCall(
-          appKey: _apiKey,
-          baseUrl: _baseUrl,
-          modelId: _modelId,
+          appKey: apiKey,
+          baseUrl: baseUrl,
+          modelId: modelId,
           supportJson: false, // 非流式，简单测试
           stream: false,
         );
@@ -209,9 +207,9 @@ void main() {
         );
 
         final dsrc = DeepSeekReverseCall(
-          appKey: _apiKey,
-          baseUrl: _baseUrl,
-          modelId: _modelId,
+          appKey: apiKey,
+          baseUrl: baseUrl,
+          modelId: modelId,
           supportJson: true,
           stream: true,
         );

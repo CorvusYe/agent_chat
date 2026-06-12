@@ -11,7 +11,7 @@
 // 3. 处理流式推理过程（reasoning）和内容输出
 // 4. 支持工具调用（subTopics + answerSettings）
 //
-// ⚠️ 使用前请将下方 apiKey/baseUrl/modelId 替换为真实值。
+// ⚠️ API 配置统一在 api_config.dart 中管理，详见 api_config_template.dart。
 //
 // 依赖（已添加到 pubspec.yaml）：
 //   de_src:
@@ -24,14 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
 import 'package:de_src/de_src.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 配置区 — 替换为你的真实 API 信息
-// ═══════════════════════════════════════════════════════════════════════════
-
-const String _apiKey = 'YOUR_API_KEY';
-const String _baseUrl = 'https://api.deepseek.com';
-const String _modelId = 'deepseek-v4-flash';
-const bool _supportJson = true;
+import 'api_config.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 第一部分：定义 DsrcApi — AI 的能力契约
@@ -100,25 +93,16 @@ var codeAnalyzeApi = DsrcApi(
   },
 );
 
-/// 路由器 API — 根据用户输入选择合适的工具
+/// 路由器 API — 仅有 subTopics（工具列表），无额外 prompt / properties。
 ///
-/// 通过 subTopics 注册子话题，LLM 可以自主选择调用哪个工具。
+/// prompt 为空，LLM 只看到工具定义 + 用户消息，自行决定是否调工具。
 var routerApi = DsrcApi(
   value: 'assistant-router',
   name: '智能助手',
-  prompt: () => [
-    '你是一个智能助手，可以根据用户的问题选择合适的工具。',
-    '如果问题涉及文件操作，使用 read-file 工具。',
-    '如果问题涉及代码审查，使用 code-analyze 工具。',
-    '如果是普通问答，直接回复即可。',
-  ],
+  prompt: () => [],
   subTopics: () => [readFileApi, codeAnalyzeApi],
   plainTopics: ['say-goodbye'],
-  properties: () => {
-    'router': '功能路由：assistant-qa|tool-read-file|tool-code-analyze|say-goodbye',
-    'reply': '回复内容',
-    'finished': '是否结束对话',
-  },
+  properties: () => <String, String>{},
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -207,10 +191,10 @@ Future<void> _processWithDeSrc(
 
     // ── 初始化 de_src 客户端 ──
     final dsrc = DeepSeekReverseCall(
-      appKey: _apiKey,
-      baseUrl: _baseUrl,
-      modelId: _modelId,
-      supportJson: _supportJson,
+      appKey: apiKey,
+      baseUrl: baseUrl,
+      modelId: modelId,
+      supportJson: supportJson,
       stream: true,
     );
 
@@ -269,7 +253,6 @@ Future<void> _processWithTools(
     var thinkBuffer = '';
     var thinkEmitted = false;
     var contentBuffer = '';
-    var contentEmitted = false;
 
     // ── 推理流：流式输出 ──
     cotCtrl.stream.listen(
@@ -290,32 +273,41 @@ Future<void> _processWithTools(
       cancelOnError: true,
     );
 
-    // ── 内容流：流式输出到 UI（打字机效果）──
+    // ── 内容流：仅缓冲，不发射事件 ──
+    // 内容事件在工具 handler 内部或 dsrc.api() 返回后发射，
+    // 确保内容 block 出现在工具 block 之后而非之前。
     contentCtrl.stream.listen(
       (chunk) {
-        if (!contentEmitted) {
-          ctrl.add(ContentStarted(id, 'content'));
-          contentEmitted = true;
-        }
         contentBuffer += chunk;
-        // 尝试提取 reply 字段，不成功则显示原始缓冲区
-        ctrl.add(ContentDelta(id, 'content', _extractReply(contentBuffer)));
       },
       onDone: () {},
       cancelOnError: true,
     );
 
+    // ── 内容块 ID 生成器 ──
+    // 每个 content block 拥有唯一 ID，支持同一 exchange 内多个内容块。
+    var _contentSeq = 0;
+    String _contentId() => '${id}_content_${_contentSeq++}';
+
     // ── 注册工具回调 ──
     Future<List<ChatMessage>?> readFileHandler(ActionArgs args) async {
+      // 发射本轮模型的中间回答（如有）
+      final reply = (args.prev?['reply'] as String?) ?? '';
+      if (reply.isNotEmpty) {
+        final cid = _contentId();
+        ctrl.add(ContentStarted(id, cid));
+        ctrl.add(ContentDelta(id, cid, reply));
+        ctrl.add(ContentCompleted(id, cid, reply));
+      }
+
+      final tcId = (args.prev?['_tool_call_id'] as String?) ?? 'tool_read';
       ctrl.add(ParallelBoundary(id));
       ctrl.add(
-        ToolCallStarted(id, 'tool_read', 'read_file', {
+        ToolCallStarted(id, tcId, 'read_file', {
           'path': args.prev?['path'] ?? 'unknown',
         }),
       );
-      ctrl.add(
-        ToolCallCompleted(id, 'tool_read', '模拟文件内容：\nTODO list\n1. ...'),
-      );
+      ctrl.add(ToolCallCompleted(id, tcId, '模拟文件内容：\nTODO list\n1. ...'));
       return [
         ChatMessage.assistant(content: _msgContent(args.message)),
         ChatMessage.user(UserMessageContent.text('文件已读取，请根据文件内容继续回答。')),
@@ -323,13 +315,23 @@ Future<void> _processWithTools(
     }
 
     Future<List<ChatMessage>?> codeAnalyzeHandler(ActionArgs args) async {
+      // 发射本轮模型的中间回答（如有）
+      final reply = (args.prev?['reply'] as String?) ?? '';
+      if (reply.isNotEmpty) {
+        final cid = _contentId();
+        ctrl.add(ContentStarted(id, cid));
+        ctrl.add(ContentDelta(id, cid, reply));
+        ctrl.add(ContentCompleted(id, cid, reply));
+      }
+
+      final tcId = (args.prev?['_tool_call_id'] as String?) ?? 'tool_analyze';
       ctrl.add(ParallelBoundary(id));
       ctrl.add(
-        ToolCallStarted(id, 'tool_analyze', 'code_analyze', {
+        ToolCallStarted(id, tcId, 'code_analyze', {
           'file': args.prev?['file'] ?? 'unknown',
         }),
       );
-      ctrl.add(ToolCallCompleted(id, 'tool_analyze', '分析完成：发现 2 个问题'));
+      ctrl.add(ToolCallCompleted(id, tcId, '分析完成：发现 2 个问题'));
       return [
         ChatMessage.assistant(content: _msgContent(args.message)),
         ChatMessage.user(UserMessageContent.text('代码分析完成，请根据分析结果向用户报告。')),
@@ -355,6 +357,7 @@ Future<void> _processWithTools(
                         as Map<String, dynamic>;
               } catch (_) {}
             }
+            parsed['_tool_call_id'] = tc.id;
             return await handler(args.copyWith(prev: parsed));
           }
           return null;
@@ -371,10 +374,10 @@ Future<void> _processWithTools(
 
     // ── 初始化客户端并调用 ──
     final dsrc = DeepSeekReverseCall(
-      appKey: _apiKey,
-      baseUrl: _baseUrl,
-      modelId: _modelId,
-      supportJson: _supportJson,
+      appKey: apiKey,
+      baseUrl: baseUrl,
+      modelId: modelId,
+      supportJson: supportJson,
       stream: true,
     );
 
@@ -388,21 +391,46 @@ Future<void> _processWithTools(
     await Future<void>.delayed(Duration.zero);
 
     // ── 从 dsrc.api() 的最终返回值中提取并发射内容 ──
-    // dsrc.api() 会递归处理工具调用，最终返回的是纯文本回答
-    var displayText = result ?? contentBuffer;
-    if (displayText.isNotEmpty) {
-      // 尝试从 JSON 中提取 reply 字段
-      final parsed = _parseJson5(displayText);
-      if (parsed.containsKey('reply')) {
-        displayText = parsed['reply'].toString();
+    // dsrc.api() 会递归处理工具调用，最终返回最终的文本回答。
+    // 注意：de_src 在原生 tool_calls 非空时才会调 answerSettings；
+    // JSON router 模式下（{"router":"tool-read-file",...}）toolCalls 为空，
+    // de_src 直接返回 JSON 字符串，需在此处手动分发 router。
+    // 使用 _contentId() 确保唯一 block ID。
+    if (result != null && result.isNotEmpty) {
+      final parsed = _parseJson5(result);
+
+      // JSON router 分发：模型可能使用字段路由而非原生 tool_calls。
+      // de_src 在 toolCalls 为空时不调 answerSettings，需手动触发。
+      // 工具 handler 内部已发射 reply 内容 + 工具事件，此处不再重复发射。
+      final router = parsed['router'] as String?;
+      final hasRouterDispatch =
+          router != null &&
+          answerSettings[router] != null &&
+          router != 'assistant-qa' &&
+          router != 'say-goodbye';
+      if (hasRouterDispatch) {
+        await answerSettings[router]!(ActionArgs(prev: parsed, api: routerApi));
       }
-      if (!contentEmitted) {
-        // 非流式：没有收到内容块，完整发射
-        ctrl.add(ContentStarted(id, 'content'));
-        ctrl.add(ContentDelta(id, 'content', displayText));
+
+      // 提取 reply 作为展示内容
+      // 注意：hasRouterDispatch 为真时 handler 已发射 reply 内容，跳过避免重复。
+      if (!hasRouterDispatch && parsed.containsKey('reply')) {
+        final reply = parsed['reply'].toString();
+        if (reply.isNotEmpty) {
+          final cid = _contentId();
+          ctrl.add(ContentStarted(id, cid));
+          ctrl.add(ContentDelta(id, cid, reply));
+          ctrl.add(ContentCompleted(id, cid, reply));
+          ctrl.add(TokenCount(id, reply.length));
+        }
+      } else if (!hasRouterDispatch && !result.trimLeft().startsWith('{')) {
+        // 非 JSON 纯文本回复（兜底）
+        final cid = _contentId();
+        ctrl.add(ContentStarted(id, cid));
+        ctrl.add(ContentDelta(id, cid, result));
+        ctrl.add(ContentCompleted(id, cid, result));
+        ctrl.add(TokenCount(id, result.length));
       }
-      ctrl.add(ContentCompleted(id, 'content', displayText));
-      ctrl.add(TokenCount(id, displayText.length));
     }
   } catch (e) {
     if (!ctrl.isClosed) {
@@ -502,7 +530,7 @@ class _DeSrcChatAppState extends State<DeSrcChatApp> {
 ///   flutter run -t lib/main_de_src.dart
 ///
 /// 注意事项：
-///   1. 请先替换本文件顶部的 _apiKey / _baseUrl / _modelId
+///   1. 请先替换本文件顶部的 apiKey / baseUrl / modelId
 ///   2. 确保 de_src 的依赖路径在 pubspec.yaml 中正确
 ///   3. 运行前执行 flutter pub get
 void main() {
