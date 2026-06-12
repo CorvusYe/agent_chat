@@ -8,7 +8,6 @@ import 'package:integration_test/integration_test.dart';
 
 import 'package:agent_chat/agent_chat.dart';
 import 'package:de_src/de_src.dart';
-import 'package:agent_chat_example/api_config.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  端到端测试 — 真实 de_src API 调用
@@ -17,12 +16,23 @@ import 'package:agent_chat_example/api_config.dart';
 //
 //  运行方式：
 //     cd dart/example
-//     flutter drive --driver=test_driver/integration_test.dart \
+//     flutter drive --dart-define-from-file=.env.test \
+//       --driver=test_driver/integration_test.dart \
 //       --target=integration_test/de_src_e2e_test.dart -d windows
 //
 //  注意：这些测试会消耗 API 额度，应在需要验证 API 集成时手动执行。
-//  API 配置统一在 api_config.dart 中管理，详见 api_config_template.dart。
+//  API 配置通过 --dart-define-from-file=.env.test 注入，详见 .env.test.example。
 // ═══════════════════════════════════════════════════════════════════════════
+
+const apiKey = String.fromEnvironment('API_KEY', defaultValue: '');
+const baseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'https://api.deepseek.com',
+);
+const modelId = String.fromEnvironment(
+  'API_MODEL_ID',
+  defaultValue: 'deepseek-v4-flash',
+);
 
 final _qaApi = DsrcApi(
   value: 'e2e-qa',

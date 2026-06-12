@@ -23,8 +23,8 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# API config with real keys
-example/lib/api_config.dart
+# API config with real keys (--dart-define-from-file)
+example/.env.test
 
 # Flutter/Dart/Pub related
 **/doc/api/

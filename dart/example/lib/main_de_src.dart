@@ -11,7 +11,7 @@
 // 3. 处理流式推理过程（reasoning）和内容输出
 // 4. 支持工具调用（subTopics + answerSettings）
 //
-// ⚠️ API 配置统一在 api_config.dart 中管理，详见 api_config_template.dart。
+// ⚠️ API 配置通过 --dart-define-from-file=.env.test 注入，详见 .env.test.example。
 //
 // 依赖（已添加到 pubspec.yaml）：
 //   de_src:
@@ -24,7 +24,25 @@ import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
 import 'package:de_src/de_src.dart';
 
-import 'api_config.dart';
+// ═══════════════════════════════════════════════════════════════════════════
+// 配置 — 通过 --dart-define-from-file=.env.test 注入
+// 参考 .env.test.example 创建自己的配置文件，然后运行：
+//   flutter run --dart-define-from-file=.env.test -t lib/main_de_src.dart
+// ═══════════════════════════════════════════════════════════════════════════
+
+const String apiKey = String.fromEnvironment('API_KEY', defaultValue: '');
+const String baseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'https://api.deepseek.com',
+);
+const String modelId = String.fromEnvironment(
+  'API_MODEL_ID',
+  defaultValue: 'deepseek-v4-flash',
+);
+const bool supportJson = bool.fromEnvironment(
+  'API_SUPPORT_JSON',
+  defaultValue: true,
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 第一部分：定义 DsrcApi — AI 的能力契约
@@ -286,15 +304,15 @@ Future<void> _processWithTools(
 
     // ── 内容块 ID 生成器 ──
     // 每个 content block 拥有唯一 ID，支持同一 exchange 内多个内容块。
-    var _contentSeq = 0;
-    String _contentId() => '${id}_content_${_contentSeq++}';
+    var contentSeq = 0;
+    String nextContentId() => '${id}_content_${contentSeq++}';
 
     // ── 注册工具回调 ──
     Future<List<ChatMessage>?> readFileHandler(ActionArgs args) async {
       // 发射本轮模型的中间回答（如有）
       final reply = (args.prev?['reply'] as String?) ?? '';
       if (reply.isNotEmpty) {
-        final cid = _contentId();
+        final cid = nextContentId();
         ctrl.add(ContentStarted(id, cid));
         ctrl.add(ContentDelta(id, cid, reply));
         ctrl.add(ContentCompleted(id, cid, reply));
@@ -318,7 +336,7 @@ Future<void> _processWithTools(
       // 发射本轮模型的中间回答（如有）
       final reply = (args.prev?['reply'] as String?) ?? '';
       if (reply.isNotEmpty) {
-        final cid = _contentId();
+        final cid = nextContentId();
         ctrl.add(ContentStarted(id, cid));
         ctrl.add(ContentDelta(id, cid, reply));
         ctrl.add(ContentCompleted(id, cid, reply));
@@ -395,7 +413,7 @@ Future<void> _processWithTools(
     // 注意：de_src 在原生 tool_calls 非空时才会调 answerSettings；
     // JSON router 模式下（{"router":"tool-read-file",...}）toolCalls 为空，
     // de_src 直接返回 JSON 字符串，需在此处手动分发 router。
-    // 使用 _contentId() 确保唯一 block ID。
+    // 使用 nextContentId() 确保唯一 block ID。
     if (result != null && result.isNotEmpty) {
       final parsed = _parseJson5(result);
 
@@ -417,7 +435,7 @@ Future<void> _processWithTools(
       if (!hasRouterDispatch && parsed.containsKey('reply')) {
         final reply = parsed['reply'].toString();
         if (reply.isNotEmpty) {
-          final cid = _contentId();
+          final cid = nextContentId();
           ctrl.add(ContentStarted(id, cid));
           ctrl.add(ContentDelta(id, cid, reply));
           ctrl.add(ContentCompleted(id, cid, reply));
@@ -425,7 +443,7 @@ Future<void> _processWithTools(
         }
       } else if (!hasRouterDispatch && !result.trimLeft().startsWith('{')) {
         // 非 JSON 纯文本回复（兜底）
-        final cid = _contentId();
+        final cid = nextContentId();
         ctrl.add(ContentStarted(id, cid));
         ctrl.add(ContentDelta(id, cid, result));
         ctrl.add(ContentCompleted(id, cid, result));
