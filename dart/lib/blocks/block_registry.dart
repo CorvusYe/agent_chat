@@ -232,11 +232,16 @@ class _ContentBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = block.content;
+    // 内容为空时不渲染 body，避免 tool-only 响应显示空 block
+    if (content == null || content.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final theme = ChatTheme.of(context);
     return SizedBox(
       width: double.infinity,
       child: Text(
-        block.content ?? '',
+        content,
         style: TextStyle(
           color: theme.textContent,
           fontSize: theme.fontSizeLg,

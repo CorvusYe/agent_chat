@@ -545,10 +545,14 @@ class _DeSrcChatAppState extends State<DeSrcChatApp> {
 ///
 /// 运行方式：
 ///   cd dart/example
-///   flutter run -t lib/main_de_src.dart
+///   flutter run --dart-define-from-file=.env.test -t lib/main_de_src.dart
+///
+/// VS Code 启动：
+///   1. 在 VS Code 中打开 dart/example/ 文件夹
+///   2. 按 F5（或 Ctrl+F5），选择 "de_src (tools enabled)" 配置
 ///
 /// 注意事项：
-///   1. 请先替换本文件顶部的 apiKey / baseUrl / modelId
+///   1. 参考 .env.test.example 创建 .env.test 并填入你的 API 信息
 ///   2. 确保 de_src 的依赖路径在 pubspec.yaml 中正确
 ///   3. 运行前执行 flutter pub get
 void main() {

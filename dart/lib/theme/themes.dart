@@ -133,7 +133,7 @@ class ChatThemes {
     accentLight: Color(0xFF60b8ff),
     accentAlpha: Color(0x40479ef5),
     success: Color(0xFF4caf84),
-    error: Color(0xFFd13438),
+    error: Color(0xFFe8585a),
     warning: Color(0xFFffa64d),
     border: Color(0xFF484848),
     borderLight: Color(0xFF3b3b3b),

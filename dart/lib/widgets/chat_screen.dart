@@ -294,6 +294,11 @@ class _ChatScreenState extends State<ChatScreen>
       ];
 
       for (final block in allBlocks) {
+        // 空内容的 content block 整体跳过（tool-only 响应不显示"回答"）
+        if (block.type == BlockType.content &&
+            (block.content == null || block.content!.isEmpty)) {
+          continue;
+        }
         final collapsed = _isCollapsed(block, exchange);
         final innerSlivers = <Widget>[
           SliverPinnedHeader(
@@ -323,6 +328,26 @@ class _ChatScreenState extends State<ChatScreen>
             child: buildThinkingPlaceholder(context, exchange),
           ),
         );
+      }
+
+      if (exchange.status == ExchangeStatus.failed &&
+          exchange.errorMessage != null &&
+          exchange.errorMessage!.isNotEmpty) {
+        final errCollapsed = _isErrorCollapsed(exchange);
+        final errKey = _errorCollapseKey(exchange);
+        final errSlivers = <Widget>[
+          SliverToBoxAdapter(
+            child: _buildErrorHeader(context, theme, errKey, errCollapsed),
+          ),
+        ];
+        if (!errCollapsed) {
+          errSlivers.add(
+            SliverToBoxAdapter(
+              child: _buildErrorContent(context, exchange.errorMessage!, theme),
+            ),
+          );
+        }
+        groupSlivers.add(SliverMainAxisGroup(slivers: errSlivers));
       }
 
       slivers.add(SliverMainAxisGroup(slivers: groupSlivers));
@@ -370,6 +395,105 @@ class _ChatScreenState extends State<ChatScreen>
           ),
         );
       },
+    );
+  }
+
+  String _errorCollapseKey(Exchange exchange) => '${exchange.id}_error';
+
+  bool _isErrorCollapsed(Exchange exchange) {
+    final key = _errorCollapseKey(exchange);
+    if (_manuallyExpandedKeys.contains(key)) return false;
+    if (_manuallyCollapsedKeys.contains(key)) return true;
+    return false; // 默认展开
+  }
+
+  Widget _buildErrorHeader(
+    BuildContext context,
+    ChatTheme theme,
+    String collapseKey,
+    bool collapsed,
+  ) {
+    return SizedBox(
+      height: 28.0,
+      child: Padding(
+        padding: EdgeInsets.only(left: theme.spacingLg),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // 圆点
+            Positioned(
+              left: -17,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.bgPrimary,
+                    border: Border.all(color: theme.error, width: 2),
+                  ),
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () => _onToggleCollapsed(collapseKey, collapsed),
+              child: buildBlockHeader(
+                context: context,
+                icon: Icons.error_outline,
+                label: '错误',
+                color: theme.error,
+                theme: theme,
+                showChevron: true,
+                expanded: !collapsed,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorContent(
+    BuildContext context,
+    String errorMessage,
+    ChatTheme theme,
+  ) {
+    final isLight = theme.bgPrimary.computeLuminance() > 0.5;
+    final verticalAlpha = isLight ? 0.25 : 0.2;
+
+    return Padding(
+      padding: theme.blockPadding,
+      child: Stack(
+        children: [
+          // 左侧竖线
+          Positioned(
+            left: 4,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 2,
+              color: theme.error.withValues(alpha: verticalAlpha),
+            ),
+          ),
+          // 错误消息
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10, bottom: 4),
+              child: Text(
+                errorMessage,
+                style: TextStyle(
+                  color: theme.textSecondary,
+                  fontSize: theme.fontSizeSm,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
