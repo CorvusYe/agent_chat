@@ -1,5 +1,5 @@
-name: agent_chat_example
-description: "Demo app for agent_chat Flutter UI library."
+name: agent_chat_e2e_example
+description: "E2E tests for agent_chat Flutter UI library."
 publish_to: 'none'
 version: 1.0.0+1
 

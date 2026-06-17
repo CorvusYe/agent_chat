@@ -544,11 +544,11 @@ class _DeSrcChatAppState extends State<DeSrcChatApp> {
 /// 使用 de_src 替代 Mock 的 Agent Chat 入口。
 ///
 /// 运行方式：
-///   cd dart/example
+///   cd dart/e2e-example
 ///   flutter run --dart-define-from-file=.env.test -t lib/main_de_src.dart
 ///
 /// VS Code 启动：
-///   1. 在 VS Code 中打开 dart/example/ 文件夹
+///   1. 在 VS Code 中打开 dart/e2e-example/ 文件夹
 ///   2. 按 F5（或 Ctrl+F5），选择 "de_src (tools enabled)" 配置
 ///
 /// 注意事项：

@@ -12,10 +12,10 @@ packages:
     dependency: transitive
     description:
       name: anthropic_sdk_dart
-      sha256: c6156e106927eea40b75c4a97f193ea93e12adb033c41d51742b61b7ea122f17
+      sha256: b6f9921022651456c2a69b015a6e66d1cf8348bb93336e3b257911e1019a471c
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "4.2.0"
   async:
     dependency: transitive
     description:
