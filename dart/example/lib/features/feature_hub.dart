@@ -9,6 +9,7 @@ import 'custom_blocks_demo.dart';
 import 'theme_gallery.dart';
 import 'stats_demo.dart';
 import 'custom_theme_demo.dart';
+import 'collapse_demo.dart';
 import 'code_drawer.dart';
 
 /// 特性描述 — 含标题、说明、图标、构建器和对应 API 代码片段
@@ -500,6 +501,104 @@ final _features = <_Feature>[
             '// ChatTheme 配合 Color.lerp 可推导衍生色：\n'
             'final surface = Color.lerp(bgPrimary, white, 0.08)!;\n'
             'final textSec  = Color.lerp(textPrimary, white, 0.4)!;',
+      ),
+    ],
+  ),
+  _Feature(
+    '展开/折叠控制',
+    'ExchangeEvent 控制块可见性',
+    Icons.unfold_more,
+    (_) => const CollapseDemo(),
+    [
+      CodeSnippet(
+        '默认展开规则',
+        'ChatScreen._isCollapsed() 的默认策略：\n'
+            '\n'
+            'bool _isCollapsed(ChatBlock block, Exchange exchange) {\n'
+            '  // ① 用户手动展开过 → 不折叠\n'
+            '  if (_manuallyExpandedKeys.contains(key))\n'
+            '    return false;\n'
+            '  // ② 用户手动折叠过 → 折叠\n'
+            '  if (_manuallyCollapsedKeys.contains(key))\n'
+            '    return true;\n'
+            '\n'
+            '  // ③ 同组有 running/pending 的 block → 展开\n'
+            '  for (final group in exchange.groups) {\n'
+            '    if (group.blocks.any((b) => b.id == block.id)) {\n'
+            '      if (group.blocks.any((b) =>\n'
+            '          b.status == BlockStatus.running ||\n'
+            '          b.status == BlockStatus.pending))\n'
+            '        return false;\n'
+            '      break;\n'
+            '    }\n'
+            '  }\n'
+            '\n'
+            '  // ④ 最新 block → 展开，历史 block → 折叠\n'
+            '  return !_isLatestBlock(block, exchange);\n'
+            '}',
+      ),
+      CodeSnippet(
+        '手动切换：点击 header',
+        '用户点击 block header 时触发 _handleToggle()：\n'
+            '\n'
+            'void _handleToggle() {\n'
+            '  final newExpanded = !_expanded;\n'
+            '  setState(() => _expanded = newExpanded);\n'
+            '  // 通知父级记录手动状态\n'
+            '  widget.onCollapsedChanged?.call(\n'
+            '    widget.block.id, newExpanded);\n'
+            '}\n'
+            '\n'
+            '// ChatScreen 将手工状态记入集合：\n'
+            'void _onToggleCollapsed(\n'
+            '    String collapseKey, bool currentlyCollapsed) {\n'
+            '  setState(() {\n'
+            '    if (currentlyCollapsed) {\n'
+            '      _manuallyExpandedKeys.add(collapseKey);\n'
+            '      _manuallyCollapsedKeys.remove(collapseKey);\n'
+            '    } else {\n'
+            '      _manuallyCollapsedKeys.add(collapseKey);\n'
+            '      _manuallyExpandedKeys.remove(collapseKey);\n'
+            '    }\n'
+            '  });\n'
+            '}',
+      ),
+      CodeSnippet(
+        '同组并行强制展开',
+        '当同一 ParallelBoundary 组内有正在运行的 block：\n'
+            '\n'
+            'yield ToolCallStarted(id, \'t1\', \'search\', {});\n'
+            'yield ToolCallStarted(id, \'t2\', \'cache\', {});\n'
+            'yield ParallelBoundary(id);  // ← 打包为同组\n'
+            '\n'
+            '// → t1 和 t2 同属一个 BlockGroup\n'
+            '// → 只要 t2 还在 running，整个组保持展开\n'
+            '// → 即使 t1 已完成，用户也看不到折叠\n'
+            '// → 全部完成后恢复到默认规则\n'
+            '\n'
+            '// 这是通过 _isCollapsed 中的"同组检查"实现的：\n'
+            'group.blocks.any((b) =>\n'
+            '  b.status == BlockStatus.running ||\n'
+            '  b.status == BlockStatus.pending\n'
+            ') → return false (不折叠)',
+      ),
+      CodeSnippet(
+        '通过 CustomBlockEvent / 外部控制',
+        '// 目前 ChatScreen 的折叠状态完全由 UI 交互驱动。\n'
+            '// 你可以通过以下方式从外部触发折叠/展开：\n'
+            '\n'
+            '// 方式 A：利用 CustomBlockEvent 携带标记\n'
+            '// 在你的事件流中发射元数据事件，由 ChatScreen\n'
+            '// 的监听器提取并调用 _onToggleCollapsed()。\n'
+            '\n'
+            '// 方式 B：继承 ChatScreen 覆写 _isCollapsed\n'
+            '// 或通过 blockRegistry 自定义 block widget\n'
+            '// 的 collapsed 参数。\n'
+            '\n'
+            '// 方式 C：直接操作 collapsedBlockIds 集合\n'
+            '// (需要访问 ChatScreen 内部状态，暂未暴露)\n'
+            '// 但你可以自己实现一个 ChatBus 监听器来\n'
+            '// 响应特定事件并触发重建。',
       ),
     ],
   ),
