@@ -24,24 +24,24 @@ flutter:
   fonts:
     - family: AlibabaPuHuiTi
       fonts:
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-35-THIN.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-35-THIN.TTF
           weight: 100
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-45-LIGHT.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-45-LIGHT.TTF
           weight: 300
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-55-REGULAR.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-55-REGULAR.TTF
           weight: 400
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-65-MEDIUM.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-65-MEDIUM.TTF
           weight: 500
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-75-SEMIBOLD.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-75-SEMIBOLD.TTF
           weight: 600
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-85-BOLD.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-85-BOLD.TTF
           weight: 700
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-95-EXTRABOLD.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-95-EXTRABOLD.TTF
           weight: 800
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-105-HEAVY.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-105-HEAVY.TTF
           weight: 900
-        - asset: ../../assets/fonts/ALIBABAPUHUITI-2-115-BLACK.TTF
+        - asset: assets/fonts/ALIBABAPUHUITI-2-115-BLACK.TTF
           weight: 900
     - family: KaiTi
       fonts:
-        - asset: ../../assets/fonts/simkai.ttf
+        - asset: assets/fonts/simkai.ttf

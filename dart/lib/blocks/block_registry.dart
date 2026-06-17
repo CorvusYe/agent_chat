@@ -310,112 +310,92 @@ class _ConfirmGate extends StatelessWidget {
     final theme = ChatTheme.of(context);
 
     return Container(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: BoxDecoration(
-        color: theme.bgWarning,
-        border: Border.all(color: theme.borderWarning),
+        color: theme.bgCard,
+        border: Border.all(color: theme.border),
         borderRadius: BorderRadius.circular(theme.radiusMd),
       ),
-      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (block.description != null)
+          // 描述 + 工具名 同一行
+          if (block.description != null || block.toolName != null)
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                theme.spacingMd,
-                theme.spacingSm,
-                theme.spacingMd,
-                theme.spacingXs,
-              ),
-              child: Text(
-                block.description!,
-                style: TextStyle(
-                  color: theme.textContent,
-                  fontSize: theme.fontSizeMd,
-                  height: 1.5,
-                ),
-              ),
-            ),
-          if (block.toolName != null)
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: theme.spacingMd,
-                vertical: theme.spacingXs,
-              ),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: theme.spacingSm + 2,
-                  vertical: theme.spacingXs + 2,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.bgCommand,
-                  borderRadius: BorderRadius.circular(theme.radiusMd),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      block.toolName!,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.w500,
-                        fontSize: theme.fontSizeMd,
-                        color: theme.warning,
-                      ),
-                    ),
-                    if (block.toolArgs != null &&
-                        block.toolArgs!.isNotEmpty) ...[
-                      const Spacer(),
-                      Flexible(
-                        child: Text(
-                          block.toolArgs!.toString(),
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: theme.fontSizeSm,
-                            color: theme.textSecondary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  if (block.toolName != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Text(
+                        block.toolName!,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w600,
+                          fontSize: theme.fontSizeSm,
+                          color: theme.textToolHeader,
                         ),
                       ),
-                    ],
-                  ],
-                ),
+                    ),
+                  if (block.description != null)
+                    Expanded(
+                      child: Text(
+                        block.description!,
+                        style: TextStyle(
+                          color: theme.textContent,
+                          fontSize: theme.fontSizeSm,
+                          height: 1.4,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  if (block.toolArgs != null && block.toolArgs!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Text(
+                        block.toolArgs!.toString(),
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 10,
+                          color: theme.textTertiary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                ],
               ),
             ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              theme.spacingMd,
-              theme.spacingXs,
-              theme.spacingMd,
-              theme.spacingSm,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ConfirmButton.filled(
-                  label: '允许',
+          // 按钮行
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _CompactBtn(
+                label: '允许',
+                filled: true,
+                color: theme.accent,
+                onPressed: () =>
+                    bus.confirmTool(exchangeId, block.toolName ?? '', false),
+              ),
+              if (block.canAlwaysAllow)
+                _CompactBtn(
+                  label: '始终允许',
+                  filled: false,
                   color: theme.accent,
                   onPressed: () =>
-                      bus.confirmTool(exchangeId, block.toolName ?? '', false),
+                      bus.confirmTool(exchangeId, block.toolName ?? '', true),
                 ),
-                if (block.canAlwaysAllow) const SizedBox(width: 8),
-                if (block.canAlwaysAllow)
-                  _ConfirmButton.outlined(
-                    label: '始终允许',
-                    color: theme.accent,
-                    onPressed: () =>
-                        bus.confirmTool(exchangeId, block.toolName ?? '', true),
-                  ),
-                const SizedBox(width: 8),
-                _ConfirmButton.text(
-                  label: '取消',
-                  color: theme.textSecondary,
-                  onPressed: () =>
-                      bus.cancelTool(exchangeId, block.toolName ?? ''),
-                ),
-              ],
-            ),
+              _CompactBtn(
+                label: '取消',
+                filled: false,
+                color: theme.textSecondary,
+                onPressed: () =>
+                    bus.cancelTool(exchangeId, block.toolName ?? ''),
+              ),
+            ],
           ),
         ],
       ),
@@ -423,82 +403,36 @@ class _ConfirmGate extends StatelessWidget {
   }
 }
 
-class _ConfirmButton extends StatelessWidget {
+class _CompactBtn extends StatelessWidget {
   final String label;
+  final bool filled;
   final Color color;
-  final bool _filled;
-  final bool _outlined;
   final VoidCallback onPressed;
 
-  const _ConfirmButton._({
+  const _CompactBtn({
     required this.label,
+    required this.filled,
     required this.color,
     required this.onPressed,
-    required this._filled,
-    required this._outlined,
   });
-
-  factory _ConfirmButton.filled({
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) => _ConfirmButton._(
-    label: label,
-    color: color,
-    onPressed: onPressed,
-    filled: true,
-    outlined: false,
-  );
-
-  factory _ConfirmButton.outlined({
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) => _ConfirmButton._(
-    label: label,
-    color: color,
-    onPressed: onPressed,
-    filled: false,
-    outlined: true,
-  );
-
-  factory _ConfirmButton.text({
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) => _ConfirmButton._(
-    label: label,
-    color: color,
-    onPressed: onPressed,
-    filled: false,
-    outlined: false,
-  );
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = _filled ? color : Colors.transparent;
-    final fgColor = _filled ? Colors.white : color;
-    final borderSide = _outlined
-        ? BorderSide(color: color.withValues(alpha: 0.5))
-        : BorderSide.none;
-
     return SizedBox(
-      height: 32,
+      height: 26,
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          backgroundColor: bgColor,
-          foregroundColor: fgColor,
+          backgroundColor: filled ? color : Colors.transparent,
+          foregroundColor: filled ? Colors.white : color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
-            side: borderSide,
+            side: filled
+                ? BorderSide.none
+                : BorderSide(color: color.withAlpha(100)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          textStyle: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.3,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
         ),
         child: Text(label),
       ),
