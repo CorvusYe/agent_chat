@@ -7,6 +7,7 @@
 //   cd dart/example && flutter run
 
 import 'package:flutter/material.dart';
+import 'package:agent_chat/agent_chat.dart';
 import 'features/feature_hub.dart';
 
 void main() {
@@ -24,6 +25,29 @@ final _colorSeeds = <Color>[
   Colors.pink,
 ];
 
+// ── 内置 ChatTheme 配置 ──
+int _chatThemeIndex = 0;
+
+/// 内置 ChatTheme 名称（用于显示）
+const _chatThemeNames = <String>['Fluent 浅色', 'Fluent 暗色', '默认暗色'];
+
+ChatTheme _currentChatTheme(Brightness brightness) {
+  switch (_chatThemeIndex) {
+    case 0:
+      return brightness == Brightness.light
+          ? ChatThemes.fluent
+          : ChatThemes.fluentDark;
+    case 1:
+      return ChatThemes.dark;
+    default:
+      return brightness == Brightness.light
+          ? ChatThemes.fluent
+          : ChatThemes.fluentDark;
+  }
+}
+
+String get currentChatThemeName => _chatThemeNames[_chatThemeIndex.clamp(0, 2)];
+
 class ShowcaseApp extends StatefulWidget {
   const ShowcaseApp({super.key});
 
@@ -37,6 +61,7 @@ class ShowcaseApp extends StatefulWidget {
 class ShowcaseAppState extends State<ShowcaseApp> {
   ThemeMode get themeMode => _themeMode;
   Color get colorSeed => _colorSeeds[_colorSeedIndex];
+  int get chatThemeIndex => _chatThemeIndex;
 
   void setThemeMode(ThemeMode mode) {
     setState(() => _themeMode = mode);
@@ -48,8 +73,21 @@ class ShowcaseAppState extends State<ShowcaseApp> {
     });
   }
 
+  void setChatThemeIndex(int index) {
+    setState(() {
+      _chatThemeIndex = index.clamp(0, 2);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final brightness = _themeMode == ThemeMode.light
+        ? Brightness.light
+        : _themeMode == ThemeMode.dark
+        ? Brightness.dark
+        : Brightness.dark;
+    final chatTheme = _currentChatTheme(brightness);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Agent Chat Showcase',
@@ -58,11 +96,13 @@ class ShowcaseAppState extends State<ShowcaseApp> {
         brightness: Brightness.light,
         colorSchemeSeed: colorSeed,
         useMaterial3: true,
+        extensions: [chatTheme],
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         colorSchemeSeed: colorSeed,
         useMaterial3: true,
+        extensions: [chatTheme],
       ),
       home: const FeatureHub(),
     );

@@ -5,7 +5,6 @@ import '../bus/chat_bus.dart';
 import '../models/exchange.dart';
 import '../models/chat_block.dart';
 import '../theme/chat_theme.dart';
-import '../theme/themes.dart';
 import '../blocks/block_registry.dart';
 import 'exchange_widget.dart';
 import 'stats_bar.dart';
@@ -192,10 +191,13 @@ class _ChatScreenState extends State<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
-    final chatTheme = widget.theme ?? ChatThemes.fluentDark;
+    final chatTheme = widget.theme ?? ChatTheme.of(context);
 
     return Theme(
-      data: ThemeData(extensions: [chatTheme], brightness: Brightness.dark),
+      data: ThemeData(
+        extensions: [chatTheme],
+        brightness: Theme.of(context).brightness,
+      ),
       child: Scaffold(
         backgroundColor: chatTheme.bgPrimary,
         body: Stack(

@@ -1,10 +1,10 @@
-// 主题画廊 — 暗色/亮色/多彩切换 + ChatScreen 预览
+// 主题画廊 — 暗色/亮色/内置 ChatTheme 切换 + ChatScreen 预览
 //
 // 展示 agent_chat 支持的主题能力：
-//   - Brightness.dark 暗色主题
-//   - Brightness.light 亮色主题
-//   - 多种 colorSchemeSeed 色彩
-//   - ChatTheme / themes.dart 的自定义
+//   - Brightness.dark / Brightness.light 切换
+//   - 6 种 colorSchemeSeed 色彩
+//   - 3 种内置 ChatTheme（Fluent 浅色 / Fluent 暗色 / 默认暗色）
+//   - ChatTheme 全局应用
 
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
@@ -76,52 +76,90 @@ class _ThemeGalleryState extends State<ThemeGallery> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           color: theme.colorScheme.surfaceContainerLow,
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // 亮色 / 暗色 切换
-              SegmentedButton<ThemeMode>(
-                segments: const [
-                  ButtonSegment(
-                    value: ThemeMode.light,
-                    label: Text('亮色'),
-                    icon: Icon(Icons.light_mode, size: 16),
+              // 第1行：亮色/暗色 + 配色切换
+              Row(
+                children: [
+                  SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('亮色'),
+                        icon: Icon(Icons.light_mode, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text('暗色'),
+                        icon: Icon(Icons.dark_mode, size: 16),
+                      ),
+                    ],
+                    selected: {appState?.themeMode ?? ThemeMode.dark},
+                    onSelectionChanged: (modes) {
+                      appState?.setThemeMode(modes.first);
+                    },
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                   ),
-                  ButtonSegment(
-                    value: ThemeMode.dark,
-                    label: Text('暗色'),
-                    icon: Icon(Icons.dark_mode, size: 16),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => appState?.cycleColorSeed(),
+                    icon: const Icon(Icons.palette_outlined, size: 20),
+                    tooltip: '切换配色',
+                  ),
+                  // 当前配色指示
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: appState?.colorSeed ?? Colors.teal,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _themeNames[appState?.colorSeed] ?? 'teal',
+                    style: theme.textTheme.bodySmall,
                   ),
                 ],
-                selected: {appState?.themeMode ?? ThemeMode.dark},
-                onSelectionChanged: (modes) {
-                  appState?.setThemeMode(modes.first);
-                },
-                style: ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
               ),
-              const SizedBox(width: 12),
-              // 色彩切换按钮
-              IconButton(
-                onPressed: () => appState?.cycleColorSeed(),
-                icon: const Icon(Icons.palette_outlined, size: 20),
-                tooltip: '切换配色',
-              ),
-              const Spacer(),
-              // 当前配色指示
-              Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: appState?.colorSeed ?? Colors.teal,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _themeNames[appState?.colorSeed] ?? 'teal',
-                style: theme.textTheme.bodySmall,
+              const SizedBox(height: 8),
+              // 第2行：内置 ChatTheme 选择
+              Row(
+                children: [
+                  Text('ChatTheme', style: theme.textTheme.labelSmall),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: DropdownButton<int>(
+                      value: appState?.chatThemeIndex ?? 0,
+                      isDense: true,
+                      underline: const SizedBox(),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 0,
+                          child: Text(
+                            'Fluent 浅色/暗色',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text(
+                            '默认暗色（紫色调）',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) appState?.setChatThemeIndex(v);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -134,7 +172,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
   }
 }
 
-final _themeNames = <MaterialColor, String>{
+final _themeNames = {
   Colors.teal: 'teal',
   Colors.indigo: 'indigo',
   Colors.deepPurple: 'purple',

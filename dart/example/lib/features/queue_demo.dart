@@ -159,6 +159,8 @@ class _QueuedChatBus with ChangeNotifier implements ChatBus {
   void dispose() {
     _inner.removeListener(_onChanged);
     _inner.dispose();
-    super.dispose();
+    try {
+      super.dispose();
+    } catch (_) {}
   }
 }

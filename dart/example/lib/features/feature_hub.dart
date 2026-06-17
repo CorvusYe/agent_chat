@@ -8,6 +8,7 @@ import 'history_demo.dart';
 import 'custom_blocks_demo.dart';
 import 'theme_gallery.dart';
 import 'stats_demo.dart';
+import 'custom_theme_demo.dart';
 
 /// 特性描述
 class _Feature {
@@ -51,7 +52,18 @@ final _features = <_Feature>[
     Icons.widgets,
     (_) => const CustomBlocksDemo(),
   ),
-  _Feature('主题画廊', '暗色/亮色/多彩切换', Icons.palette, (_) => const ThemeGallery()),
+  _Feature(
+    '主题画廊',
+    '暗色/亮色/内置 ChatTheme 切换',
+    Icons.palette,
+    (_) => const ThemeGallery(),
+  ),
+  _Feature(
+    '自定义主题',
+    '动态创建 ChatTheme 实时预览',
+    Icons.colorize,
+    (_) => const CustomThemeDemo(),
+  ),
   _Feature('统计栏', 'Token 计数 / 耗时显示', Icons.bar_chart, (_) => const StatsDemo()),
 ];
 

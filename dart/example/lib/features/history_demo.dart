@@ -252,6 +252,8 @@ class _HistoryBus extends ChangeNotifier implements ChatBus {
   @override
   void dispose() {
     _delegate.dispose();
-    super.dispose();
+    try {
+      super.dispose();
+    } catch (_) {}
   }
 }
