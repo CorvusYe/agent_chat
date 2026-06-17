@@ -222,9 +222,9 @@ class _ToolBlock extends StatelessWidget {
                     color: theme.textToolHeader,
                   ),
                 ),
-                if (block.toolArgs != null && block.toolArgs!.isNotEmpty) ...[
-                  const Spacer(),
-                  Flexible(
+                if (block.toolArgs != null && block.toolArgs!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
                     child: Text(
                       block.toolArgs!.toString(),
                       style: TextStyle(
@@ -236,7 +236,6 @@ class _ToolBlock extends StatelessWidget {
                       maxLines: 1,
                     ),
                   ),
-                ],
               ],
             ),
           ),
