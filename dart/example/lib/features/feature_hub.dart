@@ -507,10 +507,12 @@ class _FeatureHubState extends State<FeatureHub> {
         centerTitle: true,
         backgroundColor: theme.colorScheme.primaryContainer,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.code),
-            tooltip: '查看 API 代码',
-            onPressed: () => Scaffold.of(context).openEndDrawer(),
+          Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.code),
+              tooltip: '查看 API 代码',
+              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+            ),
           ),
         ],
       ),
