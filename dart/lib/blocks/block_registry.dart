@@ -4,20 +4,35 @@ import '../models/exchange.dart';
 import '../bus/chat_bus.dart';
 import '../theme/chat_theme.dart';
 
-/// BlockStyle — 自定义 Block 类型的视觉样式定义。
+/// BlockDef — 自定义 Block 类型的完整定义。
 ///
-/// 自定义类型可通过 [BlockRegistry.registerStyle] 注册，比修改 [ExchangeWidget]
-/// 内部的 switch 语句更优雅。
-class BlockStyle {
-  final IconData icon;
+/// 同时描述视觉样式（颜色、图标、标签）和渲染逻辑（builder），
+/// 通过 [BlockRegistry.registerCustom] 一次性注册。
+class BlockDef {
+  /// 类型名称，对应 [ChatBlock.type] 的 name。
+  final String name;
+
+  /// 渲染构造器。
+  final BlockWidgetBuilder builder;
+
+  /// 圆点颜色（时间线上）。
   final Color dotColor;
+
+  /// 头部文字颜色。
   final Color headerColor;
+
+  /// 头部图标。
+  final IconData icon;
+
+  /// 头部标签文本。
   final String label;
 
-  const BlockStyle({
-    required this.icon,
+  const BlockDef({
+    required this.name,
+    required this.builder,
     required this.dotColor,
     required this.headerColor,
+    required this.icon,
     required this.label,
   });
 }
@@ -41,16 +56,25 @@ typedef BlockWidgetBuilder =
 ///
 /// ```dart
 /// BlockRegistry.register(BlockType.tool, (ctx, block, bus, ex) => MyToolWidget(block));
-/// BlockRegistry.register(BlockType.custom, (ctx, block, bus, ex) => MyCustomWidget(block));
 /// ```
 ///
-/// 自定义 Block 类型还需通过 [registerStyle] 注册样式（颜色、图标、标签），
-/// 这样 [ExchangeWidget] 无需修改即可正确渲染自定义块的圆点颜色和标题。
+/// 自定义 Block 类型通过 [registerCustom] 一次性注册定义（含样式 + 构造器）：
+///
+/// ```dart
+/// BlockRegistry.registerCustom(BlockDef(
+///   name: 'code_snippet',
+///   builder: _buildCodeSnippet,
+///   icon: Icons.code,
+///   dotColor: Color(0xFF7C3AED),
+///   headerColor: Color(0xFF7C3AED),
+///   label: '代码片段',
+/// ));
+/// ```
 class BlockRegistry {
   BlockRegistry._();
 
   static final Map<String, BlockWidgetBuilder> _registry = {};
-  static final Map<String, BlockStyle> _styles = {};
+  static final Map<String, BlockDef> _defs = {};
   static bool _builtinsRegistered = false;
 
   static void _ensureBuiltins() {
@@ -63,38 +87,28 @@ class BlockRegistry {
     register(BlockType.confirmation, _defaultConfirmBuilder);
   }
 
-  /// 注册或覆盖指定类型的构造器。
+  /// 注册或覆盖内置类型的构造器。
   static void register(BlockType type, BlockWidgetBuilder builder) {
     _registry[type.name] = builder;
   }
 
-  /// 按名称注册自定义类型。
-  static void registerCustom(String name, BlockWidgetBuilder builder) {
-    _registry[name] = builder;
+  /// 注册自定义 Block 类型（样式 + 构造器一次性完成）。
+  ///
+  /// 注册后 [ExchangeWidget] 自动使用 [BlockDef] 中的
+  /// 图标、颜色、标签来渲染时间线上的圆点和头部。
+  static void registerCustom(BlockDef def) {
+    _registry[def.name] = def.builder;
+    _defs[def.name] = def;
   }
 
-  /// 获取指定类型的构造器。
+  /// 获取内置类型的构造器。
   static BlockWidgetBuilder? get(BlockType type) => _registry[type.name];
 
   /// 获取自定义类型的构造器。
   static BlockWidgetBuilder? getCustom(String name) => _registry[name];
 
-  /// 注册自定义 Block 类型的视觉样式（颜色、图标、标签）。
-  ///
-  /// 自定义类型只在此声明样式，无需修改 [ExchangeWidget]。
-  ///
-  /// [name] — 与 [registerCustom] 或 [BlockType.custom] 相同的名称。
-  static void registerStyle(String name, BlockStyle style) {
-    _styles[name] = style;
-  }
-
-  /// 获取通过 [registerStyle] 注册的自定义类型样式。
-  ///
-  /// 内建类型（thinking/tool/content/confirmation）的样式由
-  /// [ExchangeWidget] 内置默认值提供。自定义类型需在此注册。
-  static BlockStyle? getStyle(BlockType type) {
-    return _styles[type.name];
-  }
+  /// 获取自定义类型的完整定义（含样式 + 构造器）。
+  static BlockDef? getDef(BlockType type) => _defs[type.name];
 
   /// 构建 block widget。
   static Widget build(
@@ -105,9 +119,7 @@ class BlockRegistry {
   ) {
     _ensureBuiltins();
     final builder = _registry[block.type.name];
-    if (builder == null) {
-      return const SizedBox.shrink();
-    }
+    if (builder == null) return const SizedBox.shrink();
     return builder(context, block, bus, exchange);
   }
 }
@@ -271,10 +283,7 @@ class _ContentBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = block.content;
-    // 内容为空时不渲染 body，避免 tool-only 响应显示空 block
-    if (content == null || content.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (content == null || content.isEmpty) return const SizedBox.shrink();
     final theme = ChatTheme.of(context);
     return SizedBox(
       width: double.infinity,
@@ -319,7 +328,6 @@ class _ConfirmGate extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 描述 + 工具名 同一行
           if (block.description != null || block.toolName != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
@@ -367,7 +375,6 @@ class _ConfirmGate extends StatelessWidget {
                 ],
               ),
             ),
-          // 按钮行
           Wrap(
             spacing: 6,
             runSpacing: 4,
@@ -407,7 +414,6 @@ class _CompactBtn extends StatelessWidget {
   final bool filled;
   final Color color;
   final VoidCallback onPressed;
-
   const _CompactBtn({
     required this.label,
     required this.filled,

@@ -39,21 +39,20 @@ class _CustomBlocksDemoState extends State<CustomBlocksDemo> {
     if (_registered) return;
     _registered = true;
 
-    BlockRegistry.registerCustom('code_snippet', _buildCodeSnippet);
-    BlockRegistry.registerCustom('info_card', _buildInfoCard);
-
-    BlockRegistry.registerStyle(
-      'code_snippet',
-      BlockStyle(
+    BlockRegistry.registerCustom(
+      BlockDef(
+        name: 'code_snippet',
+        builder: _buildCodeSnippet,
         icon: Icons.code,
         dotColor: const Color(0xFF7C3AED),
         headerColor: const Color(0xFF7C3AED),
         label: '代码片段',
       ),
     );
-    BlockRegistry.registerStyle(
-      'info_card',
-      BlockStyle(
+    BlockRegistry.registerCustom(
+      BlockDef(
+        name: 'info_card',
+        builder: _buildInfoCard,
         icon: Icons.info_outline,
         dotColor: const Color(0xFF0EA5E9),
         headerColor: const Color(0xFF0EA5E9),

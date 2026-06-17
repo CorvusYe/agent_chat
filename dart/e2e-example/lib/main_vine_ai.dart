@@ -26,26 +26,22 @@ const String modelId = String.fromEnvironment(
 final bool hasRealKey = apiKey.isNotEmpty && apiKey != 'YOUR_API_KEY';
 
 void main() {
-  BlockRegistry.registerCustom('vine_yaml_node', _yamlBlock);
-  BlockRegistry.registerCustom('vine_mmd_workflow', _mmdBlock);
-  BlockRegistry.registerStyle(
-    'vine_yaml_node',
-    BlockStyle(
-      icon: Icons.code,
-      dotColor: const Color(0xFF7C3AED),
-      headerColor: const Color(0xFF7C3AED),
-      label: 'YAML 节点',
-    ),
-  );
-  BlockRegistry.registerStyle(
-    'vine_mmd_workflow',
-    BlockStyle(
-      icon: Icons.account_tree,
-      dotColor: const Color(0xFF0EA5E9),
-      headerColor: const Color(0xFF0EA5E9),
-      label: '工作流',
-    ),
-  );
+  BlockRegistry.registerCustom(BlockDef(
+    name: 'vine_yaml_node',
+    builder: _yamlBlock,
+    icon: Icons.code,
+    dotColor: Color(0xFF7C3AED),
+    headerColor: Color(0xFF7C3AED),
+    label: 'YAML 节点',
+  ));
+  BlockRegistry.registerCustom(BlockDef(
+    name: 'vine_mmd_workflow',
+    builder: _mmdBlock,
+    icon: Icons.account_tree,
+    dotColor: Color(0xFF0EA5E9),
+    headerColor: Color(0xFF0EA5E9),
+    label: '工作流',
+  ));
   runApp(const _App());
 }
 
