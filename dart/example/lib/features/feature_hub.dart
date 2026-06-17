@@ -10,6 +10,7 @@ import 'theme_gallery.dart';
 import 'stats_demo.dart';
 import 'custom_theme_demo.dart';
 import 'collapse_demo.dart';
+import 'error_demo.dart';
 import 'code_drawer.dart';
 
 /// 特性描述 — 含标题、说明、图标、构建器和对应 API 代码片段
@@ -183,6 +184,67 @@ final _features = <_Feature>[
             'final autoApproved = e.autoApproved\n'
             '    || _trustedTools.contains(e.toolName);\n'
             '// 命中 → 跳过确认门，直接进入 running 状态',
+      ),
+    ],
+  ),
+  _Feature(
+    '报错块展示',
+    'ExchangeError / 失败状态渲染',
+    Icons.error_outline,
+    (_) => const ErrorDemo(),
+    [
+      CodeSnippet(
+        'yield ExchangeError',
+        '// 在事件流中直接 yield ExchangeError：\n'
+            '\n'
+            'Stream<ExchangeEvent> _mockAI(String text) async* {\n'
+            '  yield ThinkingStarted(id, \'think\');\n'
+            '  // ...\n'
+            '  if (somethingWrong) {\n'
+            '    yield ExchangeError(\n'
+            '      id,                               // exchangeId\n'
+            '      \'分析失败: 目标仓库不存在\\n\'         // 错误消息\n'
+            '      \'请检查路径是否正确。\'\n'
+            '    );\n'
+            '    return;  // ← 必须 return，流不再继续\n'
+            '  }\n'
+            '  // ... 正常流程\n'
+            '}',
+      ),
+      CodeSnippet(
+        'DefaultChatBus 处理',
+        'DefaultChatBus._processEventStream 收到 ExchangeError：\n'
+            '\n'
+            'case ExchangeError e:\n'
+            '  _updateExchange(exchangeId, (ex) => ex.copyWith(\n'
+            '    status: ExchangeStatus.failed,       // ① 设失败态\n'
+            '    errorMessage: e.errorMessage,        // ② 存错误消息\n'
+            '  ));\n'
+            '  return;  // ← ③ 结束事件流处理\n'
+            '\n'
+            '→ ChatScreen 检测到 failed+errorMessage\n'
+            '→ 渲染错误头部（红色圆点 + "错误"标签）\n'
+            '→ 点击展开查看详细错误消息',
+      ),
+      CodeSnippet(
+        '三种错误场景',
+        '// 场景A：思考阶段直接报错\n'
+            'yield ExchangeError(id, \'超时: 服务无响应\');\n'
+            '\n'
+            '// 场景B：工具调用失败后报错\n'
+            'yield ToolCallStarted(id, \'t\', \'analyze\', {});\n'
+            'yield ToolCallCompleted(id, \'t\', \'失败: 权限不足\');\n'
+            'yield ExchangeError(id, \'工具执行失败\');\n'
+            '\n'
+            '// 场景C：其他代码抛出异常\n'
+            '// → _processEventStream catch 分支\n'
+            '} catch (e) {\n'
+            '  _updateExchange(exchangeId, (ex) => ex.copyWith(\n'
+            '    status: ExchangeStatus.failed,\n'
+            '    errorMessage: e.toString(),\n'
+            '  ));\n'
+            '  if (!_disposed) notifyListeners();\n'
+            '}',
       ),
     ],
   ),
