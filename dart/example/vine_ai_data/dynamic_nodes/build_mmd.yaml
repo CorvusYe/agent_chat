@@ -1,0 +1,12 @@
+type: local_method
+name: build_mmd
+config:
+  class: WorkflowMetaService
+  method: buildMmd
+  params:
+    workflow_name: "{{workflow_name}}"
+    description: "{{description}}"
+    start_node: "{{start_node}}"
+    nodes: "{{selected_nodes}}"
+    edges: "{{proposed_edges}}"
+  output_key: mmd_content

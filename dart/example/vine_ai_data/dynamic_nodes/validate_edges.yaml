@@ -1,0 +1,9 @@
+type: local_method
+name: validate_edges
+config:
+  class: WorkflowMetaService
+  method: validateEdges
+  params:
+    nodes: "{{selected_nodes}}"
+    edges: "{{proposed_edges}}"
+  output_key: validation_result

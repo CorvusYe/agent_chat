@@ -1,0 +1,9 @@
+type: local_method
+name: save_file
+config:
+  class: BasicService
+  method: saveToFile
+  params:
+    content: "{{content}}"
+    filename: "{{filename}}"
+  output_key: save_result

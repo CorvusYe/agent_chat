@@ -1,0 +1,8 @@
+type: local_method
+name: read_file
+config:
+  class: BasicService
+  method: readFromFile
+  params:
+    filename: "{{filename}}"
+  output_key: file_content

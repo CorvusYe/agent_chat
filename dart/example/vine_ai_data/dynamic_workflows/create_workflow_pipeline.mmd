@@ -1,0 +1,8 @@
+%% name: create_workflow_pipeline
+%% description: 元工作流：根据用户需求，从已有 local_method 节点中挑选并组装为新工作流，注册后立即执行
+stateDiagram-v2
+    [*] --> select_nodes
+    select_nodes --> validate_edges
+    validate_edges --> build_mmd
+    build_mmd --> register_and_save
+    register_and_save --> [*]

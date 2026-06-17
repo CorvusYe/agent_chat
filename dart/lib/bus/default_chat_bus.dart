@@ -278,6 +278,19 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             _syncPendingToExchange(exchangeId, pendingBlocks);
             _notifyBlockCompleted(exchangeId, e.blockId);
 
+          case CustomBlockEvent e:
+            final cb = ChatBlock(
+              id: e.blockId,
+              type: BlockType.custom(e.blockType),
+              content: e.content,
+              description: e.label,
+              status: e.status,
+              toolArgs: e.metadata,
+              startTime: DateTime.now(),
+            );
+            pendingBlocks.add(cb);
+            _ensureBlockInExchange(exchangeId, cb);
+
           case TokenCount e:
             _totalTokens += e.count;
 

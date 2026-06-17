@@ -1,0 +1,7 @@
+%% name: transform_pipeline
+%% description: 文本变换流水线：读取文件 → 变换 → 保存
+stateDiagram-v2
+    [*] --> read_file
+    read_file --> transform_text
+    transform_text --> save_file
+    save_file --> [*]

@@ -4,6 +4,24 @@ import '../models/exchange.dart';
 import '../bus/chat_bus.dart';
 import '../theme/chat_theme.dart';
 
+/// BlockStyle — 自定义 Block 类型的视觉样式定义。
+///
+/// 自定义类型可通过 [BlockRegistry.registerStyle] 注册，比修改 [ExchangeWidget]
+/// 内部的 switch 语句更优雅。
+class BlockStyle {
+  final IconData icon;
+  final Color dotColor;
+  final Color headerColor;
+  final String label;
+
+  const BlockStyle({
+    required this.icon,
+    required this.dotColor,
+    required this.headerColor,
+    required this.label,
+  });
+}
+
 /// BlockWidgetBuilder 签名。
 /// context — 构建上下文
 /// block — 要渲染的 block 数据
@@ -25,10 +43,14 @@ typedef BlockWidgetBuilder =
 /// BlockRegistry.register(BlockType.tool, (ctx, block, bus, ex) => MyToolWidget(block));
 /// BlockRegistry.register(BlockType.custom, (ctx, block, bus, ex) => MyCustomWidget(block));
 /// ```
+///
+/// 自定义 Block 类型还需通过 [registerStyle] 注册样式（颜色、图标、标签），
+/// 这样 [ExchangeWidget] 无需修改即可正确渲染自定义块的圆点颜色和标题。
 class BlockRegistry {
   BlockRegistry._();
 
   static final Map<String, BlockWidgetBuilder> _registry = {};
+  static final Map<String, BlockStyle> _styles = {};
   static bool _builtinsRegistered = false;
 
   static void _ensureBuiltins() {
@@ -56,6 +78,23 @@ class BlockRegistry {
 
   /// 获取自定义类型的构造器。
   static BlockWidgetBuilder? getCustom(String name) => _registry[name];
+
+  /// 注册自定义 Block 类型的视觉样式（颜色、图标、标签）。
+  ///
+  /// 自定义类型只在此声明样式，无需修改 [ExchangeWidget]。
+  ///
+  /// [name] — 与 [registerCustom] 或 [BlockType.custom] 相同的名称。
+  static void registerStyle(String name, BlockStyle style) {
+    _styles[name] = style;
+  }
+
+  /// 获取通过 [registerStyle] 注册的自定义类型样式。
+  ///
+  /// 内建类型（thinking/tool/content/confirmation）的样式由
+  /// [ExchangeWidget] 内置默认值提供。自定义类型需在此注册。
+  static BlockStyle? getStyle(BlockType type) {
+    return _styles[type.name];
+  }
 
   /// 构建 block widget。
   static Widget build(

@@ -1,0 +1,9 @@
+type: local_method
+name: transform_text
+config:
+  class: BasicService
+  method: transform
+  params:
+    input: "{{input}}"
+    rule: "{{rule}}"
+  output_key: transformed

@@ -1,0 +1,8 @@
+type: local_method
+name: log_message
+config:
+  class: BasicService
+  method: log
+  params:
+    message: "{{message}}"
+  output_key: log_result

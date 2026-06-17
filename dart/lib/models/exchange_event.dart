@@ -1,3 +1,5 @@
+import 'chat_block.dart';
+
 sealed class ExchangeEvent {
   final String exchangeId;
   const ExchangeEvent(this.exchangeId);
@@ -82,4 +84,33 @@ class TokenCount extends ExchangeEvent {
 class ExchangeError extends ExchangeEvent {
   final String errorMessage;
   const ExchangeError(super.exchangeId, this.errorMessage);
+}
+
+/// 自定义块事件 — 用于渲染非标准 BlockType（如 vine_ai 的 YAML/MMD 块）。
+///
+/// 通过此事件，任何自定义 BlockType 都可以在 Exchange 的事件流中传递，
+/// DefaultChatBus 会将其创建为 ChatBlock 并传递给 BlockRegistry 渲染。
+///
+/// [blockType] — 自定义块类型名称（对应 BlockType.custom(name)）。
+/// [content] — 块主体文本内容（如 YAML/MMD 原始文本）。
+/// [label] — 块标题标签（如节点名称或工作流名称）。
+/// [status] — 块状态（默认 completed，渲染器可直接显示）。
+/// [metadata] — 额外元数据（可供渲染器按需使用）。
+class CustomBlockEvent extends ExchangeEvent {
+  final String blockId;
+  final String blockType;
+  final String? content;
+  final String? label;
+  final BlockStatus status;
+  final Map<String, dynamic>? metadata;
+
+  const CustomBlockEvent(
+    super.exchangeId,
+    this.blockId,
+    this.blockType, {
+    this.content,
+    this.label,
+    this.status = BlockStatus.completed,
+    this.metadata,
+  });
 }

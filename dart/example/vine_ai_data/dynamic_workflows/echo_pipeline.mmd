@@ -1,0 +1,6 @@
+%% name: echo_pipeline
+%% description: 简单日志流水线：将用户输入写入文件
+stateDiagram-v2
+    [*] --> log_message
+    log_message --> save_file
+    save_file --> [*]

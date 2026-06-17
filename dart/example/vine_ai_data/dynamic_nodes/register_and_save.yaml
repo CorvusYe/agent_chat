@@ -1,0 +1,8 @@
+type: local_method
+name: register_and_save
+config:
+  class: WorkflowMetaService
+  method: registerAndSave
+  params:
+    mmd_content: "{{mmd_content}}"
+  output_key: register_result

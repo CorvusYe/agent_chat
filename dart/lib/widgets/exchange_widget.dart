@@ -76,6 +76,9 @@ Color dotColorFor(ChatBlock block, ChatTheme theme) {
   if (block.type == BlockType.tool) return theme.dotTool;
   if (block.type == BlockType.content) return theme.dotContent;
   if (block.type == BlockType.confirmation) return theme.dotConfirm;
+  // 自定义类型 — 从 BlockRegistry 取样式，未注册时走默认色
+  final style = BlockRegistry.getStyle(block.type);
+  if (style != null) return style.dotColor;
   return theme.dotContent;
 }
 
@@ -84,6 +87,9 @@ Color headerColorFor(ChatBlock block, ChatTheme theme) {
   if (block.type == BlockType.tool) return theme.headerTool;
   if (block.type == BlockType.content) return theme.headerContent;
   if (block.type == BlockType.confirmation) return theme.headerConfirm;
+  // 自定义类型 — 从 BlockRegistry 取样式
+  final style = BlockRegistry.getStyle(block.type);
+  if (style != null) return style.headerColor;
   return theme.headerContent;
 }
 
@@ -158,6 +164,9 @@ String labelForBlock(ChatBlock block) {
   if (block.type == BlockType.tool) return '工具 · ${block.toolName ?? ""}';
   if (block.type == BlockType.content) return '回答';
   if (block.type == BlockType.confirmation) return '需要确认';
+  // 自定义类型 — 从 BlockRegistry 取样式
+  final style = BlockRegistry.getStyle(block.type);
+  if (style != null) return style.label;
   return block.toolName ?? '自定义';
 }
 
@@ -166,6 +175,9 @@ IconData iconForBlock(ChatBlock block) {
   if (block.type == BlockType.tool) return Icons.build_outlined;
   if (block.type == BlockType.content) return Icons.chat_bubble_outline;
   if (block.type == BlockType.confirmation) return Icons.help_outline;
+  // 自定义类型 — 从 BlockRegistry 取样式
+  final style = BlockRegistry.getStyle(block.type);
+  if (style != null) return style.icon;
   return Icons.extension_outlined;
 }
 
