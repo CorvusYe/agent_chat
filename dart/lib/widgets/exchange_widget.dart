@@ -602,6 +602,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
               ),
               // 内容
               AnimatedCrossFade(
+                alignment: Alignment.topLeft,
                 firstChild: const SizedBox.shrink(),
                 secondChild: ConstrainedBox(
                   constraints: BoxConstraints(
