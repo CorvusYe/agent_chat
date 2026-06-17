@@ -144,8 +144,8 @@ class _CodeCard extends StatelessWidget {
               _highlight(snippet.code, isDark),
               style: TextStyle(
                 fontFamily: 'monospace',
-                fontSize: 11,
-                height: 1.5,
+                fontSize: 13,
+                height: 1.6,
                 color: isDark
                     ? const Color(0xFFCDD6F4)
                     : const Color(0xFF1E1E2E),
