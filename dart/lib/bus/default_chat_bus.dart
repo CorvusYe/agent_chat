@@ -139,7 +139,12 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     _exchanges.clear();
     _queue.clear();
     _blockStartTimes.clear();
-    super.dispose();
+    // 忽略 ChangeNotifier.dispose 中的 assert 检查，避免在 stream
+    // 尚未结束时被重复调用抛出。
+    try {
+      super.dispose();
+      // ignore: empty_catches
+    } catch (_) {}
   }
 
   // ── 内部 ──
@@ -309,7 +314,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             return;
         }
 
-        notifyListeners();
+        if (!_disposed) notifyListeners();
 
         // 确认门暂停
         if (event is ToolCallStarted &&
@@ -324,7 +329,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             exchangeId,
             (ex) => ex.copyWith(status: ExchangeStatus.waitingInput),
           );
-          notifyListeners();
+          if (!_disposed) notifyListeners();
           final completer = Completer<void>();
           _pendingConfirms[exchangeId] = completer;
           await completer.future;
@@ -351,7 +356,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                   exchangeId,
                   (ex) => ex.copyWith(status: ExchangeStatus.cancelled),
                 );
-                notifyListeners();
+                if (!_disposed) notifyListeners();
               }
             }
           }
@@ -362,7 +367,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
               exchangeId,
               (ex) => ex.copyWith(status: ExchangeStatus.processing),
             );
-            notifyListeners();
+            if (!_disposed) notifyListeners();
           }
         }
       }
