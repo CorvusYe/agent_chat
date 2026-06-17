@@ -77,7 +77,6 @@ class _ToolCallsDemoState extends State<ToolCallsDemo> {
     yield ParallelBoundary(id);
     yield TokenCount(id, 64);
 
-    // 等待用户确认工具1（在 ChatScreen 中点击通过）；
     // 工具2 自动执行并完成
     await Future.delayed(const Duration(milliseconds: 600));
     if (_cancelled) return;
@@ -87,8 +86,11 @@ class _ToolCallsDemoState extends State<ToolCallsDemo> {
       'config.yaml:\n  debug: true\n  port: 8080',
     );
 
-    // 模拟另一个 exchange 展示不同的工具状态
-    // 这个通过多次发送消息来展示
+    // 等待用户确认工具1（在 ChatScreen 中点"允许"后继续）；
+    // 用户确认后模拟执行耗时，然后完成
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (_cancelled) return;
+    yield ToolCallCompleted(id, 'tool_1', '✓ 部署命令已执行完成');
   }
 
   @override
