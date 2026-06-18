@@ -543,97 +543,100 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
         headerContentH +
         theme.blockHeaderPadding.bottom;
     final dotCenterY = headerH / 2;
-    // 时间轴水平位置：竖线与圆点共用圆心
     const dotSize = 12.0;
     const lineW = 2.0;
-    const centerX = -11.0; // 圆心在 Stack 中的 x 坐标
+    const gutterW = dotSize + 8; // 时间轴列宽度
+    // 圆点 widget
+    final dotWidget = _isRunning && _rotationCtrl != null
+        ? SizedBox(
+            width: dotSize,
+            height: dotSize,
+            child: CustomPaint(
+              painter: RunningDotPainter(
+                color: widget.showDotColor,
+                rotation: _rotationCtrl!.value,
+              ),
+            ),
+          )
+        : Container(
+            width: dotSize,
+            height: dotSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.bgPrimary,
+              border: Border.all(color: lineColor, width: 2),
+            ),
+          );
 
     return Padding(
-      padding: EdgeInsets.only(left: theme.spacingLg),
-      child: Stack(
-        clipBehavior: Clip.none,
+      padding: EdgeInsets.only(left: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 纵向线段 — 竖线中心经过圆心
-          Positioned(
-            left: centerX - lineW / 2,
-            top: dotCenterY,
-            bottom: widget.isLastBlock ? 8 : 0,
-            child: Container(width: lineW, color: lineColor),
+          // ── 时间轴列：圆点 + 竖线 ──
+          SizedBox(
+            width: gutterW,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: (gutterW - lineW) / 2,
+                  top: dotCenterY,
+                  bottom: widget.isLastBlock ? 8 : 0,
+                  child: Container(width: lineW, color: lineColor),
+                ),
+                Positioned(
+                  left: (gutterW - dotSize) / 2,
+                  top: dotCenterY - dotSize / 2,
+                  child: dotWidget,
+                ),
+              ],
+            ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 折叠/展开头部 — outlined dot
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: centerX - dotSize / 2,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: _isRunning && _rotationCtrl != null
-                          ? SizedBox(
-                              width: dotSize,
-                              height: dotSize,
-                              child: CustomPaint(
-                                painter: RunningDotPainter(
-                                  color: widget.showDotColor,
-                                  rotation: _rotationCtrl!.value,
-                                ),
-                              ),
-                            )
-                          : Container(
-                              width: dotSize,
-                              height: dotSize,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: theme.bgPrimary,
-                                border: Border.all(color: lineColor, width: 2),
-                              ),
-                            ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: _handleToggle,
-                    child: buildBlockHeader(
-                      context: context,
-                      icon: _iconFor(widget.block),
-                      label: _labelFor(widget.block),
-                      color: animatedHeaderColor,
-                      theme: theme,
-                      showChevron: true,
-                      expanded: _expanded,
-                      startTime: widget.block.startTime,
-                      elapsed: widget.block.elapsed,
-                    ),
-                  ),
-                ],
-              ),
-              // 内容
-              AnimatedCrossFade(
-                alignment: Alignment.topLeft,
-                firstChild: const SizedBox.shrink(),
-                secondChild: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: theme.contentMaxHeight,
-                  ),
-                  child: SingleChildScrollView(
-                    child: BlockRegistry.build(
-                      context,
-                      widget.block,
-                      widget.bus,
-                      widget.exchange,
-                    ),
+          // ── 内容列：header + body ──
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: _handleToggle,
+                  child: buildBlockHeader(
+                    context: context,
+                    icon: _iconFor(widget.block),
+                    label: _labelFor(widget.block),
+                    color: animatedHeaderColor,
+                    theme: theme,
+                    showChevron: true,
+                    expanded: _expanded,
+                    startTime: widget.block.startTime,
+                    elapsed: widget.block.elapsed,
                   ),
                 ),
-                crossFadeState: _expanded
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 200),
-              ),
-            ],
+                // 内容
+                AnimatedCrossFade(
+                  alignment: Alignment.topLeft,
+                  firstChild: const SizedBox.shrink(),
+                  secondChild: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: theme.contentMaxHeight,
+                    ),
+                    child: SingleChildScrollView(
+                      child: BlockRegistry.build(
+                        context,
+                        widget.block,
+                        widget.bus,
+                        widget.exchange,
+                      ),
+                    ),
+                  ),
+                  crossFadeState: _expanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 200),
+                ),
+              ],
+            ),
           ),
         ],
       ),
