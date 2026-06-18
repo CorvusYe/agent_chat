@@ -238,26 +238,24 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
     return BlockAnimController(
       block: block,
       builder: (context, anim) => BlockHeader(
-        dot: anim.isActive
-            ? SizedBox(
-                width: theme.timelineDotSize,
-                height: theme.timelineDotSize,
-                child: CustomPaint(
+        dot: SizedBox(
+          width: theme.timelineDotSize,
+          height: theme.timelineDotSize,
+          child: anim.isActive
+              ? CustomPaint(
                   painter: RunningDotPainter(
                     color: dotColor,
                     rotation: anim.rotationValue,
                   ),
+                )
+              : DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.bgPrimary,
+                    border: Border.all(color: dotColor, width: 2),
+                  ),
                 ),
-              )
-            : Container(
-                width: theme.timelineDotSize,
-                height: theme.timelineDotSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.bgPrimary,
-                  border: Border.all(color: dotColor, width: 2),
-                ),
-              ),
+        ),
         icon: iconForBlock(block),
         label: labelForBlock(block),
         color: anim.applyBreathing(headerColorFor(block, theme)),
