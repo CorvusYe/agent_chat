@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'custom_borders.dart';
 
 /// ChatTheme — 聊天 UI 专用主题，含颜色 + 排版 + 间距 + 圆角。
 ///
@@ -19,6 +20,15 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final Color bgHover;
   final Color bgHoverStrong;
   final Color bgWarning;
+
+  // ═══════════════════════════════════════
+  //  颜色 — 阴影（Neumorphism 双阴影）
+  // ═══════════════════════════════════════
+  /// 光源阴影（通常为白色/浅色，左上偏移），用于 Neumorphism 凸起效果。
+  final Color shadowLight;
+
+  /// 暗部阴影（通常为深色，右下偏移），用于 Neumorphism 凸起效果。
+  final Color shadowDark;
 
   // ═══════════════════════════════════════
   //  颜色 — 文字
@@ -140,6 +150,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     required this.bgHover,
     required this.bgHoverStrong,
     required this.bgWarning,
+    // 阴影（可选，默认透明）
+    this.shadowLight = const Color(0x00000000),
+    this.shadowDark = const Color(0x00000000),
+    // 装饰开关（默认传统样式）
     required this.textPrimary,
     required this.textInput,
     required this.textContent,
@@ -215,6 +229,80 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.placeholderBreathingDuration = const Duration(milliseconds: 400),
   });
 
+  // ═══════════════════════════════════════
+  //  装饰工厂 — theme 直接提供 BoxDecoration，widget 不判断
+  // ═══════════════════════════════════════
+
+  BoxDecoration cardDecoration() {
+    final hasShadow = shadowLight.a > 0 || shadowDark.a > 0;
+    if (hasShadow) {
+      return BoxDecoration(
+        color: bgSurface,
+        borderRadius: BorderRadius.circular(radiusMd),
+        border: Border.all(color: border),
+        boxShadow: [
+          BoxShadow(
+            color: shadowLight,
+            offset: const Offset(-4, -4),
+            blurRadius: 10,
+          ),
+          BoxShadow(
+            color: shadowDark,
+            offset: const Offset(4, 4),
+            blurRadius: 10,
+          ),
+        ],
+      );
+    }
+    return BoxDecoration(
+      color: bgSurface,
+      border: Border(
+        top: BorderSide(color: borderStrong),
+        left: BorderSide(color: borderStrong),
+        right: BorderSide(color: borderStrong),
+        bottom: BorderSide(color: borderUser),
+      ),
+    );
+  }
+
+  BoxDecoration inputContainerDecoration(double animValue) {
+    if (shadowLight.a == 0 && shadowDark.a == 0) return const BoxDecoration();
+    return BoxDecoration(
+      color: bgInput,
+      borderRadius: BorderRadius.circular(radiusMd),
+      boxShadow: [
+        BoxShadow(
+          color: shadowDark,
+          offset: Offset(2 + animValue, 2 + animValue),
+          blurRadius: 4 + animValue * 4,
+        ),
+        BoxShadow(
+          color: shadowLight,
+          offset: Offset(-2 - animValue, -2 - animValue),
+          blurRadius: 4 + animValue * 4,
+        ),
+      ],
+    );
+  }
+
+  Color inputFillColor(double animValue) {
+    if (shadowLight.a > 0 || shadowDark.a > 0) return Colors.transparent;
+    return Color.lerp(bgSurface, bgInput, animValue)!;
+  }
+
+  InputBorder inputUnderlineBorder(double animValue) {
+    if (shadowLight.a > 0 || shadowDark.a > 0) {
+      return UnderlineInputBorder(
+        borderSide: BorderSide(color: textTertiary.withValues(alpha: 0.3)),
+      );
+    }
+    return AccentUnderlineBorder(
+      animationValue: animValue,
+      accentColor: accent,
+      borderSide: BorderSide(color: border, width: 1),
+    );
+  }
+
   static ChatTheme of(BuildContext context) {
     return Theme.of(context).extension<ChatTheme>() ?? _fallback;
   }
@@ -282,6 +370,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     Color? bgHover,
     Color? bgHoverStrong,
     Color? bgWarning,
+    Color? shadowLight,
+    Color? shadowDark,
     Color? textPrimary,
     Color? textInput,
     Color? textContent,
@@ -362,6 +452,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       bgHover: bgHover ?? this.bgHover,
       bgHoverStrong: bgHoverStrong ?? this.bgHoverStrong,
       bgWarning: bgWarning ?? this.bgWarning,
+      shadowLight: shadowLight ?? this.shadowLight,
+      shadowDark: shadowDark ?? this.shadowDark,
       textPrimary: textPrimary ?? this.textPrimary,
       textInput: textInput ?? this.textInput,
       textContent: textContent ?? this.textContent,
@@ -449,6 +541,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       bgHover: Color.lerp(bgHover, other.bgHover, t)!,
       bgHoverStrong: Color.lerp(bgHoverStrong, other.bgHoverStrong, t)!,
       bgWarning: Color.lerp(bgWarning, other.bgWarning, t)!,
+      shadowLight: Color.lerp(shadowLight, other.shadowLight, t)!,
+      shadowDark: Color.lerp(shadowDark, other.shadowDark, t)!,
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       textContent: Color.lerp(textContent, other.textContent, t)!,

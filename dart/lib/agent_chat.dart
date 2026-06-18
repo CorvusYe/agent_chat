@@ -15,3 +15,5 @@ export 'widgets/chat_input.dart';
 
 export 'theme/chat_theme.dart';
 export 'theme/themes.dart';
+export 'theme/neu_helpers.dart';
+export 'theme/custom_borders.dart';

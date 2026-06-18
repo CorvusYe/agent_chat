@@ -255,19 +255,81 @@ class _ChatScreenState extends State<ChatScreen>
   Widget _buildInput(ChatTheme theme) {
     final animValue = _focusAnimCtrl.value;
     const inputContentPadding = EdgeInsets.fromLTRB(4, 6, 4, 8);
-    final inputFillColor = Color.lerp(
-      theme.bgSurface,
-      theme.bgInput,
-      animValue,
-    )!;
-    final underlineBorder = _AccentUnderlineBorder(
-      animationValue: animValue,
-      accentColor: theme.accent,
-      borderSide: BorderSide(color: theme.border, width: 1),
+    final inputField = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: theme.inputContainerDecoration(animValue),
+      child: TextField(
+        controller: _textCtrl,
+        focusNode: _inputFocus,
+        cursorColor: theme.accent,
+        textAlignVertical: TextAlignVertical.center,
+        maxLines: 5,
+        minLines: 1,
+        style: TextStyle(color: theme.textInput, fontSize: 14, height: 1.5),
+        decoration: InputDecoration(
+          isCollapsed: true,
+          filled: true,
+          fillColor: theme.inputFillColor(animValue),
+          contentPadding: inputContentPadding,
+          hintText: '输入消息…',
+          hintStyle: TextStyle(color: theme.textPlaceholder),
+          enabledBorder: theme.inputUnderlineBorder(animValue),
+          focusedBorder: theme.inputUnderlineBorder(animValue),
+          border: theme.inputUnderlineBorder(animValue),
+        ),
+      ),
     );
+
+    final sendButton = SizedBox(
+      width: 28,
+      height: 28,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.accent.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowLight,
+              offset: const Offset(-2, -2),
+              blurRadius: 4,
+            ),
+            BoxShadow(
+              color: theme.shadowDark,
+              offset: const Offset(2, 2),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: _handleSend,
+            child: Center(
+              child: Icon(
+                bus.isStreaming ? Icons.playlist_add : Icons.send_rounded,
+                size: theme.iconSizeMd,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
     return Container(
       decoration: BoxDecoration(
+        color: theme.bgSurface,
         border: Border(top: BorderSide(color: theme.borderLight)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowDark,
+            offset: const Offset(0, -2),
+            blurRadius: 6,
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -275,54 +337,9 @@ class _ChatScreenState extends State<ChatScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _textCtrl,
-                  focusNode: _inputFocus,
-                  cursorColor: theme.accent,
-                  textAlignVertical: TextAlignVertical.center,
-                  maxLines: 5,
-                  minLines: 1,
-                  style: TextStyle(
-                    color: theme.textInput,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    filled: true,
-                    fillColor: inputFillColor,
-                    contentPadding: inputContentPadding,
-                    hintText: '输入消息…',
-                    hintStyle: TextStyle(color: theme.textPlaceholder),
-                    enabledBorder: underlineBorder,
-                    focusedBorder: underlineBorder,
-                    border: underlineBorder,
-                  ),
-                ),
-              ),
-              SizedBox(width: 4),
-              SizedBox(
-                width: 28,
-                height: 28,
-                child: Material(
-                  color: theme.accent,
-                  borderRadius: BorderRadius.circular(4),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(4),
-                    onTap: _handleSend,
-                    child: Center(
-                      child: Icon(
-                        bus.isStreaming
-                            ? Icons.playlist_add
-                            : Icons.send_rounded,
-                        size: theme.iconSizeMd,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              Expanded(child: inputField),
+              const SizedBox(width: 4),
+              sendButton,
             ],
           ),
           // Badge — outside Row to avoid layout interference
@@ -352,91 +369,6 @@ class _ChatScreenState extends State<ChatScreen>
       ),
     );
   }
-}
-
-// ═══════════════════════════════════════════════════════
-//  Accent Underline Border — animated expand-from-center
-// ═══════════════════════════════════════════════════════
-
-class _AccentUnderlineBorder extends InputBorder {
-  final double animationValue;
-  final Color accentColor;
-
-  const _AccentUnderlineBorder({
-    required this.animationValue,
-    required this.accentColor,
-    super.borderSide = const BorderSide(color: Color(0xFF484848), width: 1),
-  });
-
-  @override
-  bool get isOutline => false;
-
-  @override
-  EdgeInsetsGeometry get dimensions =>
-      EdgeInsets.only(bottom: borderSide.width);
-
-  @override
-  _AccentUnderlineBorder copyWith({BorderSide? borderSide}) =>
-      _AccentUnderlineBorder(
-        animationValue: animationValue,
-        accentColor: accentColor,
-        borderSide: borderSide ?? this.borderSide,
-      );
-
-  @override
-  void paint(
-    Canvas canvas,
-    Rect rect, {
-    double? gapStart,
-    double gapExtent = 0.0,
-    double gapPercentage = 0.0,
-    TextDirection? textDirection,
-  }) {
-    final y = rect.bottom - 0.5;
-    // 1px base line — always visible
-    canvas.drawLine(
-      Offset(rect.left, y),
-      Offset(rect.right, y),
-      Paint()
-        ..color = borderSide.color
-        ..strokeWidth = 1.0,
-    );
-
-    // 2px accent line — expands from center on focus
-    if (animationValue > 0.001) {
-      final t = animationValue;
-      final spread = 0.5 * t;
-      final r = Rect.fromLTWH(rect.left, rect.bottom - 2, rect.width, 2);
-      canvas.drawRect(
-        r,
-        Paint()
-          ..shader = LinearGradient(
-            colors: [
-              Colors.transparent,
-              accentColor,
-              accentColor,
-              Colors.transparent,
-            ],
-            stops: [0, 0.5 - spread, 0.5 + spread, 1],
-          ).createShader(r),
-      );
-    }
-  }
-
-  @override
-  ShapeBorder scale(double t) => _AccentUnderlineBorder(
-    animationValue: animationValue,
-    accentColor: accentColor,
-    borderSide: borderSide.scale(t),
-  );
-
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
-      Path()..addRect(rect);
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
-      Path()..addRect(rect);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -476,17 +408,11 @@ class _LastUserStickyHeader extends StatelessWidget {
     final needsExpand = tp.didExceedMaxLines;
     final gradientStart = padV + lineHeight;
 
+    final decoration = theme.cardDecoration();
+
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: theme.bgSurface,
-        border: Border(
-          top: BorderSide(color: theme.borderStrong),
-          left: BorderSide(color: theme.borderStrong),
-          right: BorderSide(color: theme.borderStrong),
-          bottom: BorderSide(color: theme.borderUser),
-        ),
-      ),
+      decoration: decoration,
       child: SizedBox(
         height: height,
         child: Stack(
@@ -659,23 +585,36 @@ class _QueuePopupContent extends StatelessWidget {
     final theme = ChatTheme.of(context);
     final items = bus.queueItems;
 
+    final decoration = BoxDecoration(
+      color: theme.bgPopup,
+      borderRadius: BorderRadius.circular(theme.radiusXl),
+      border: Border.all(color: theme.border),
+      boxShadow: [
+        BoxShadow(
+          color: theme.shadowLight,
+          offset: const Offset(-6, -6),
+          blurRadius: 16,
+        ),
+        BoxShadow(
+          color: theme.shadowDark,
+          offset: const Offset(6, 6),
+          blurRadius: 16,
+        ),
+        if (theme.shadowLight.a == 0 && theme.shadowDark.a == 0)
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 30,
+            offset: const Offset(0, -8),
+          ),
+      ],
+    );
+
     return Material(
       color: Colors.transparent,
       child: Container(
         width: 320,
         constraints: const BoxConstraints(maxHeight: 300),
-        decoration: BoxDecoration(
-          color: theme.bgPopup,
-          border: Border.all(color: theme.border),
-          borderRadius: BorderRadius.circular(theme.radiusLg),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 30,
-              offset: const Offset(0, -8),
-            ),
-          ],
-        ),
+        decoration: decoration,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

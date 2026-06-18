@@ -319,18 +319,12 @@ class _UserMessageState extends State<_UserMessage> {
         )..layout(maxWidth: contentWidth);
         final needsExpand = tp.didExceedMaxLines;
 
+        final decoration = theme.cardDecoration();
+
         return Container(
           width: double.infinity,
           clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            color: theme.bgSurface,
-            border: Border(
-              top: BorderSide(color: theme.borderStrong),
-              left: BorderSide(color: theme.borderStrong),
-              right: BorderSide(color: theme.borderStrong),
-              bottom: BorderSide(color: theme.borderUser),
-            ),
-          ),
+          decoration: decoration,
           child: Stack(
             children: [
               // scrollable content with height constraint

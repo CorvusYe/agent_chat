@@ -1,120 +1,142 @@
-// 自定义主题 Demo — macOS 风格 ChatTheme
+// 自定义主题 Demo — macOS Neumorphism 风格 ChatTheme
 //
-// 展示如何构建一个完整的 macOS 风格 ChatTheme，
-// 包含亮色/暗色两套完整配色方案。
+// 展示基于 Neumorphism（软 UI / 新拟态）设计规范的 macOS 风格主题，
+// 包含亮色/暗色两套完整配色 + NeuBox / NeuTheme 装饰示例。
+//
+// Neumorphism 设计规范要点：
+//   1. 单色系 — 元素与背景颜色一致，仅靠双阴影区分层次
+//   2. 双阴影 — 左上亮影 + 右下暗影，产生"挤出"立体感
+//   3. 大圆角 — 比传统风格更圆润
+//   4. 无硬边框 — 用阴影替代描边
+//   5. 柔和背景 — 暖灰/冷灰色调，避免纯白/纯黑
+//   6. 凹陷交互 — 激活/聚焦时阴影反转（inset 效果）
 
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
 
-/// macOS 风格亮色主题
-ChatTheme macOSLightTheme() => ChatTheme(
-  // ── 背景 ──
-  bgPrimary: const Color(0xFFF5F5F7), // 系统灰白底
-  bgSurface: const Color(0xFFFFFFFF), // 白色表面
-  bgPopup: const Color(0xFFFFFFFF),
-  bgInput: const Color(0xFFE8E8ED), // 输入框灰底
-  bgCard: const Color(0xFFFFFFFF),
-  bgCardHeader: const Color(0xFFF0F0F5),
-  bgCommand: const Color(0xFFF0F0F5),
-  bgHover: const Color(0xFFE8E8ED),
-  bgHoverStrong: const Color(0xFFDCDCE0),
-  bgWarning: const Color(0xFFFFF8E1),
+// ═══════════════════════════════════════════════════════════
+//  macOS Neumorphism 亮色主题
+// ═══════════════════════════════════════════════════════════
 
+ChatTheme neumorphicMacOSLight() => ChatTheme(
+  // ── 背景（Neumorphic：所有背景色高度统一） ──
+  bgPrimary: const Color(0xFFECF0F4), // 冷灰主背景（经典 Neumorphic 底色）
+  bgSurface: const Color(0xFFECF0F4), // = bgPrimary
+  bgPopup: const Color(0xFFECF0F4), // 弹窗同背景，用阴影分离
+  bgInput: const Color(0xFFECF0F4), // 输入框同背景，用 inset 阴影
+  bgCard: const Color(0xFFECF0F4), // 卡片同背景
+  bgCardHeader: const Color(0xFFE8ECF1), // 极微弱区分
+  bgCommand: const Color(0xFFE5E9EE),
+  bgHover: const Color(0xFFE2E6EB),
+  bgHoverStrong: const Color(0xFFD8DCE3),
+  bgWarning: const Color(0xFFFDF3DC),
+
+  // ── Neumorphism 双阴影颜色 ──
+  shadowLight: const Color(0xCCFFFFFF), // 纯白高光（左上，80%）
+  shadowDark: const Color(0x738B939C), // 灰影（右下，45%，层次更深）
   // ── 文字 ──
-  textPrimary: const Color(0xFF1D1D1F), // 近乎黑
-  textInput: const Color(0xFF1D1D1F),
-  textContent: const Color(0xFF1D1D1F),
-  textSecondary: const Color(0xFF86868B), // 次要灰
-  textTertiary: const Color(0xFFAEAEB2), // 三级灰
-  textToolResult: const Color(0xFF86868B),
-  textToolHeader: const Color(0xFF007AFF), // macOS 蓝
-  textPlaceholder: const Color(0xFFC7C7CC),
+  textPrimary: const Color(0xFF1C1C1E),
+  textInput: const Color(0xFF1C1C1E),
+  textContent: const Color(0xFF1C1C1E),
+  textSecondary: const Color(0xFF6E6E73),
+  textTertiary: const Color(0xFF8E8E93),
+  textToolResult: const Color(0xFF6E6E73),
+  textToolHeader: const Color(0xFF007AFF),
+  textPlaceholder: const Color(0xFFB8B8BE),
 
-  // ── 强调色 ──
-  accent: const Color(0xFF007AFF), // macOS 标准蓝
+  // ── 强调色（macOS 标准） ──
+  accent: const Color(0xFF007AFF),
   accentHover: const Color(0xFF0066D6),
   accentActive: const Color(0xFF0055BF),
   accentLight: const Color(0xFF409CFF),
   accentAlpha: const Color(0x1F007AFF),
-  success: const Color(0xFF34C759), // macOS 绿
-  error: const Color(0xFFFF3B30), // macOS 红
-  warning: const Color(0xFFFF9500), // macOS 橙
-  // ── 边框 ──
-  border: const Color(0xFFD2D2D7),
-  borderLight: const Color(0xFFE5E5EA),
-  borderStrong: const Color(0xFFB8B8BE),
-  borderUser: const Color(0xFFC7C7CC),
+  success: const Color(0xFF34C759),
+  error: const Color(0xFFFF3B30),
+  warning: const Color(0xFFFF9500),
+
+  // ── 边框（Neumorphic: 极淡或透明，仅做后备） ──
+  border: const Color(0x1A8B939C),
+  borderLight: const Color(0x0D8B939C),
+  borderStrong: const Color(0x268B939C),
+  borderUser: const Color(0x1A8B939C),
   borderAccent: const Color(0x4D007AFF),
   borderWarning: const Color(0x33FF9500),
 
   // ── 状态点 ──
-  dotThinking: const Color(0xFFAEAEB2),
+  dotThinking: const Color(0xFF8E8E93),
   dotTool: const Color(0xFF007AFF),
   dotContent: const Color(0xFF007AFF),
   dotConfirm: const Color(0xFFFF9500),
-  headerThinking: const Color(0xFFAEAEB2),
+  headerThinking: const Color(0xFF8E8E93),
   headerTool: const Color(0xFF007AFF),
   headerContent: const Color(0xFF007AFF),
   headerConfirm: const Color(0xFFFF9500),
 
   // ── 装饰 ──
-  chevronColor: const Color(0xFFAEAEB2),
-  statColor: const Color(0xFFAEAEB2),
-  spinnerColor: const Color(0xFFAEAEB2),
-  btnSecondaryBg: const Color(0x1A007AFF), // 浅蓝底
-  resultBg: const Color(0x0A000000),
-  buttonBorderColor: const Color(0x33000000), // 极淡灰边框
-  // macOS 时间轴
+  chevronColor: const Color(0xFF8E8E93),
+  statColor: const Color(0xFF8E8E93),
+  spinnerColor: const Color(0xFF8E8E93),
+  btnSecondaryBg: const Color(0x1A007AFF),
+  resultBg: const Color(0x08000000),
+  buttonBorderColor: const Color(0x268B939C),
+
+  // ── 尺寸（Neumorphic: 大圆角 + 宽间距） ──
   timelineGutter: 24,
   timelineDotSize: 12,
   timelineLineWidth: 2,
-  // macOS 更大的圆角
-  radiusMd: 6,
-  radiusLg: 8,
-  radiusXl: 10,
-  // macOS 更宽松的间距
+  radiusSm: 6,
+  radiusMd: 10,
+  radiusLg: 14,
+  radiusXl: 18,
   spacingWindow: 16,
   spacingLg: 20,
 );
 
-/// macOS 风格暗色主题
-ChatTheme macOSDarkTheme() => ChatTheme(
-  // ── 背景 ──
-  bgPrimary: const Color(0xFF1C1C1E), // 深灰底
-  bgSurface: const Color(0xFF2C2C2E), // 表面
-  bgPopup: const Color(0xFF2C2C2E),
-  bgInput: const Color(0xFF3A3A3C),
-  bgCard: const Color(0xFF2C2C2E),
-  bgCardHeader: const Color(0xFF363638),
-  bgCommand: const Color(0xFF363638),
-  bgHover: const Color(0xFF3A3A3C),
-  bgHoverStrong: const Color(0xFF48484A),
+// ═══════════════════════════════════════════════════════════
+//  macOS Neumorphism 暗色主题
+// ═══════════════════════════════════════════════════════════
+
+ChatTheme neumorphicMacOSDark() => ChatTheme(
+  // ── 背景（Neumorphic：高度统一） ──
+  bgPrimary: const Color(0xFF1C1C1E), // 深灰主背景
+  bgSurface: const Color(0xFF1C1C1E), // = bgPrimary
+  bgPopup: const Color(0xFF222224), // 弹窗微微提亮（仍很近）
+  bgInput: const Color(0xFF1C1C1E), // 输入框同背景
+  bgCard: const Color(0xFF1C1C1E), // 卡片同背景
+  bgCardHeader: const Color(0xFF1F1F21),
+  bgCommand: const Color(0xFF222224),
+  bgHover: const Color(0xFF252527),
+  bgHoverStrong: const Color(0xFF2C2C2E),
   bgWarning: const Color(0x1AFF9500),
 
+  // ── Neumorphism 双阴影颜色（暗色：亮影 > 背景，暗影 < 背景） ──
+  shadowLight: const Color(0x6638383A), // 亮灰（左上，40%，明显亮于背景）
+  shadowDark: const Color(0x66000000), // 纯黑（右下，40%，深邃感）
   // ── 文字 ──
-  textPrimary: const Color(0xFFF5F5F7), // 近乎白
+  textPrimary: const Color(0xFFF5F5F7),
   textInput: const Color(0xFFF5F5F7),
   textContent: const Color(0xFFF5F5F7),
   textSecondary: const Color(0xFF98989D),
   textTertiary: const Color(0xFF6E6E73),
   textToolResult: const Color(0xFF98989D),
-  textToolHeader: const Color(0xFF64B5F6), // 浅蓝
-  textPlaceholder: const Color(0xFF56565A),
+  textToolHeader: const Color(0xFF64B5F6),
+  textPlaceholder: const Color(0xFF48484A),
 
   // ── 强调色 ──
-  accent: const Color(0xFF64B5F6), // 浅蓝
+  accent: const Color(0xFF64B5F6),
   accentHover: const Color(0xFF4CA9F5),
   accentActive: const Color(0xFF339EF4),
   accentLight: const Color(0xFF82C5F8),
   accentAlpha: const Color(0x2F64B5F6),
-  success: const Color(0xFF30D158), // macOS 暗绿
-  error: const Color(0xFFFF453A), // macOS 暗红
-  warning: const Color(0xFFFF9F0A), // macOS 暗橙
-  // ── 边框 ──
-  border: const Color(0xFF48484A),
-  borderLight: const Color(0xFF3A3A3C),
-  borderStrong: const Color(0xFF56565A),
-  borderUser: const Color(0xFF48484A),
+  success: const Color(0xFF30D158),
+  error: const Color(0xFFFF453A),
+  warning: const Color(0xFFFF9F0A),
+
+  // ── 边框（极淡） ──
+  border: const Color(0x1AFFFFFF),
+  borderLight: const Color(0x0DFFFFFF),
+  borderStrong: const Color(0x26FFFFFF),
+  borderUser: const Color(0x1AFFFFFF),
   borderAccent: const Color(0x4D64B5F6),
   borderWarning: const Color(0x40FF9F0A),
 
@@ -132,21 +154,25 @@ ChatTheme macOSDarkTheme() => ChatTheme(
   chevronColor: const Color(0xFF6E6E73),
   statColor: const Color(0xFF6E6E73),
   spinnerColor: const Color(0xFF6E6E73),
-  btnSecondaryBg: const Color(0x2A64B5F6), // 浅蓝底
+  btnSecondaryBg: const Color(0x2A64B5F6),
   resultBg: const Color(0x1A000000),
-  buttonBorderColor: const Color(0x33FFFFFF), // 极淡灰边框
-  // macOS 时间轴
+  buttonBorderColor: const Color(0x33FFFFFF),
+
+  // ── 尺寸 ──
   timelineGutter: 24,
   timelineDotSize: 12,
   timelineLineWidth: 2,
-  // macOS 更大的圆角
-  radiusMd: 6,
-  radiusLg: 8,
-  radiusXl: 10,
-  // macOS 更宽松的间距
+  radiusSm: 6,
+  radiusMd: 10,
+  radiusLg: 14,
+  radiusXl: 18,
   spacingWindow: 16,
   spacingLg: 20,
 );
+
+// ═══════════════════════════════════════════════════════════
+//  Demo — 展示 macOS Neumorphism 效果
+// ═══════════════════════════════════════════════════════════
 
 class CustomThemeDemo extends StatefulWidget {
   const CustomThemeDemo({super.key});
@@ -180,23 +206,18 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
   Future<void> _autoDemo() async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
-    // 第1轮：基础对话（thinking + content）
-    bus.sendMessage('macOS 风格主题预览');
+    bus.sendMessage('macOS Neumorphism 主题预览');
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    // 第2轮：工具调用
     bus.sendMessage('检查系统状态');
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    // 第3轮：需确认的操作（确认门）
     bus.sendMessage('清理临时文件');
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    // 第4轮：并行工具
     bus.sendMessage('分析项目');
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    // 第5轮：报错场景
     bus.sendMessage('报告错误');
   }
 
@@ -204,25 +225,26 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
     _cancelled = false;
     final id = 'ex_${DateTime.now().millisecondsSinceEpoch}';
 
-    if (text == 'macOS 风格主题预览') {
+    if (text == 'macOS Neumorphism 主题预览') {
       yield ThinkingStarted(id, 'think');
       yield ThinkingDelta(
         id,
         'think',
-        '正在应用 macOS 风格主题…\n'
-            '亮色模式使用 #F5F5F7 灰白背景 + #007AFF 强调色\n'
-            '暗色模式使用 #1C1C1E 深灰背景 + #64B5F6 强调色',
+        '正在应用 macOS Neumorphism 主题…\n'
+            '亮色：暖灰 #E8ECF0 + 双阴影 + #007AFF 强调\n'
+            '暗色：深灰 #1C1C1E + 双阴影 + #64B5F6 强调',
       );
       await Future.delayed(const Duration(milliseconds: 300));
       if (_cancelled) return;
       yield ThinkingCompleted(id, 'think', '主题已应用');
       yield ContentStarted(id, 'content');
       const reply =
-          '当前使用的是完整 macOS 风格 ChatTheme，\n'
-          '涵盖背景、文字、强调色、边框、状态点等全部 ~70 个属性。';
+          '当前使用的是完整 macOS Neumorphism 风格 ChatTheme，\n'
+          '遵循软 UI 设计规范：单色系、双阴影挤出、大圆角、无硬边框。\n'
+          '所有 UI 元素与背景同色，仅通过左上亮影 + 右下暗影产生层次感。';
       yield ContentDelta(id, 'content', reply);
       yield ContentCompleted(id, 'content', reply);
-      yield TokenCount(id, 38);
+      yield TokenCount(id, 42);
       return;
     }
 
@@ -328,7 +350,6 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
       await Future.delayed(const Duration(milliseconds: 400));
       if (_cancelled) return;
       yield ThinkingCompleted(id, 'think', '连接超时');
-      // macOS 风格错误展示（#FF3B30 red）
       yield ExchangeError(
         id,
         '请求超时: 服务器无响应 (30s)\n\n'
@@ -343,53 +364,49 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
 
   @override
   Widget build(BuildContext context) {
-    final chatTheme = _dark ? macOSDarkTheme() : macOSLightTheme();
-    final theme = Theme.of(context);
+    final chatTheme = _dark ? neumorphicMacOSDark() : neumorphicMacOSLight();
+    final neu = NeuTheme(chatTheme);
 
     return Column(
       children: [
-        // 控制面板
-        Container(
-          padding: const EdgeInsets.all(12),
-          color: theme.colorScheme.surfaceContainerLow,
-          child: Row(
-            children: [
-              const Text(
-                'macOS 风格',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(width: 12),
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(
-                    value: false,
-                    label: Text('亮色'),
-                    icon: Icon(Icons.light_mode, size: 16),
+        // ── 控制面板（Neumorphic 凸起效果） ──
+        NeuBox(
+          style: NeuStyle.flat,
+          borderRadius: 0,
+          color: chatTheme.bgSurface,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Icon(Icons.auto_awesome, size: 16, color: chatTheme.accent),
+                const SizedBox(width: 8),
+                const Text(
+                  'macOS Neumorphism',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
                   ),
-                  ButtonSegment(
-                    value: true,
-                    label: Text('暗色'),
-                    icon: Icon(Icons.dark_mode, size: 16),
-                  ),
-                ],
-                selected: {_dark},
-                onSelectionChanged: (v) => setState(() => _dark = v.first),
-                style: ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-              ),
-              const Spacer(),
-              Icon(
-                Icons.desktop_mac_outlined,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-            ],
+                const SizedBox(width: 12),
+                _NeuToggle(
+                  value: _dark,
+                  onChanged: (v) => setState(() => _dark = v),
+                  neu: neu,
+                ),
+                const Spacer(),
+                // Neumorphic 图标按钮（微凸起）
+                _NeuIconButton(
+                  icon: Icons.info_outline,
+                  tooltip: 'Neumorphism: 双阴影挤出 + 单色系',
+                  neu: neu,
+                ),
+              ],
+            ),
           ),
         ),
-        const Divider(height: 1),
-        // 预览
+        const Divider(height: 1, color: Colors.transparent),
+        // ── ChatScreen 预览 ──
         Expanded(
           child: Theme(
             data: ThemeData(
@@ -400,6 +417,92 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Neumorphic Toggle Switch
+// ═══════════════════════════════════════════════════════════
+
+class _NeuToggle extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final NeuTheme neu;
+
+  const _NeuToggle({
+    required this.value,
+    required this.onChanged,
+    required this.neu,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: NeuBox(
+        style: value ? NeuStyle.inset : NeuStyle.extrude,
+        borderRadius: 14,
+        blurRadius: 6,
+        color: neu.chat.bgSurface,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.light_mode_outlined,
+              size: 13,
+              color: value ? neu.chat.textTertiary : neu.chat.accent,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              value ? '暗色' : '亮色',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: value ? neu.chat.textSecondary : neu.chat.textPrimary,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.dark_mode_outlined,
+              size: 13,
+              color: value ? neu.chat.accent : neu.chat.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Neumorphic Icon Button
+// ═══════════════════════════════════════════════════════════
+
+class _NeuIconButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final NeuTheme neu;
+
+  const _NeuIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.neu,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: NeuBox(
+        style: NeuStyle.extrude,
+        borderRadius: 8,
+        blurRadius: 4,
+        color: neu.chat.bgSurface,
+        padding: const EdgeInsets.all(6),
+        child: Icon(icon, size: 16, color: neu.chat.textSecondary),
+      ),
     );
   }
 }
