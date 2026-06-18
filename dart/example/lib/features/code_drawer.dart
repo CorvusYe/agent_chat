@@ -130,7 +130,7 @@ class _CodeCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'monospace',
+                    fontFamily: 'AlibabaPuHuiTi',
                   ),
                 ),
               ],
@@ -143,7 +143,7 @@ class _CodeCard extends StatelessWidget {
             child: SelectableText.rich(
               _highlight(snippet.code, isDark),
               style: TextStyle(
-                fontFamily: 'monospace',
+                fontFamily: 'AlibabaPuHuiTi',
                 fontSize: 13,
                 height: 1.6,
                 color: isDark
