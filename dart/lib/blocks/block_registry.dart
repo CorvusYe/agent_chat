@@ -128,13 +128,16 @@ class BlockRegistry {
 //  默认 Block 构造器
 // ═══════════════════════════════════════════════════════
 
+/// 当前 exchange 是否处于失败态
+bool _isFailed(Exchange exchange) => exchange.status == ExchangeStatus.failed;
+
 Widget _defaultThinkingBuilder(
   BuildContext context,
   ChatBlock block,
   ChatBus bus,
   Exchange exchange,
 ) {
-  return _ThinkingBlock(block: block);
+  return _ThinkingBlock(block: block, isError: _isFailed(exchange));
 }
 
 Widget _defaultToolBuilder(
@@ -146,10 +149,7 @@ Widget _defaultToolBuilder(
   if (block.requiresConfirm && block.status == BlockStatus.pending) {
     return _ConfirmGate(block: block, bus: bus, exchangeId: exchange.id);
   }
-  return _ToolBlock(
-    block: block,
-    isError: exchange.status == ExchangeStatus.failed,
-  );
+  return _ToolBlock(block: block, isError: _isFailed(exchange));
 }
 
 Widget _defaultContentBuilder(
@@ -158,7 +158,7 @@ Widget _defaultContentBuilder(
   ChatBus bus,
   Exchange exchange,
 ) {
-  return _ContentBlock(block: block);
+  return _ContentBlock(block: block, isError: _isFailed(exchange));
 }
 
 Widget _defaultConfirmBuilder(
@@ -176,7 +176,8 @@ Widget _defaultConfirmBuilder(
 
 class _ThinkingBlock extends StatelessWidget {
   final ChatBlock block;
-  const _ThinkingBlock({required this.block});
+  final bool isError;
+  const _ThinkingBlock({required this.block, this.isError = false});
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +187,7 @@ class _ThinkingBlock extends StatelessWidget {
       child: Text(
         block.content ?? '',
         style: TextStyle(
-          color: theme.textSecondary,
+          color: isError ? theme.error : theme.textSecondary,
           fontSize: theme.fontSizeMd,
           height: 1.5,
         ),
@@ -295,7 +296,8 @@ class _ToolBlock extends StatelessWidget {
 
 class _ContentBlock extends StatelessWidget {
   final ChatBlock block;
-  const _ContentBlock({required this.block});
+  final bool isError;
+  const _ContentBlock({required this.block, this.isError = false});
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +309,7 @@ class _ContentBlock extends StatelessWidget {
       child: Text(
         content,
         style: TextStyle(
-          color: theme.textContent,
+          color: isError ? theme.error : theme.textContent,
           fontSize: theme.fontSizeLg,
           height: 1.6,
         ),
