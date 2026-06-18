@@ -435,7 +435,7 @@ class _CompactBtn extends StatelessWidget {
                     : Colors.white)
               : color,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(2),
             side: filled
                 ? BorderSide.none
                 : BorderSide(color: color.withAlpha(100)),
