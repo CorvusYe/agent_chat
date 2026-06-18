@@ -53,7 +53,7 @@ final _features = <_Feature>[
             '    yield ToolCallStarted(id, \'tool\', \'read_file\', args);\n'
             '    // ... 等待执行\n'
             '    yield ToolCallCompleted(id, \'tool\', result);\n'
-            '\n'
+            '    //        isError: true  → 红色错误风格\n'
             '    // 3. 内容输出 — 打字机效果\n'
             '    yield ContentStarted(id, \'content\');\n'
             '    for (...) {\n'
@@ -135,7 +135,9 @@ final _features = <_Feature>[
             ' - ToolCallStarted + requiresConfirm → pending\n'
             ' - 用户 confirmTool() → approved/running\n'
             ' - 用户 cancelTool()  → cancelled\n'
-            ' - ToolCallCompleted → completed',
+            ' - ToolCallCompleted           → completed\n'
+            ' - ToolCallCompleted(isError)  → completed + exchange failed\n'
+            ' - ExchangeError               → exchange failed + 错误块',
       ),
       CodeSnippet(
         'ParallelBoundary 分组',
@@ -185,6 +187,21 @@ final _features = <_Feature>[
             '    || _trustedTools.contains(e.toolName);\n'
             '// 命中 → 跳过确认门，直接进入 running 状态',
       ),
+      CodeSnippet(
+        '按钮风格（主题控制）',
+        '确认门按钮通过 ChatTheme 控制样式：\n'
+            '\n'
+            'smallButtonHeight    — 按钮高度（默认 24px）\n'
+            'radiusSm             — 按钮圆角（默认 2px）\n'
+            'fontSizeSm           — 按钮字号（默认 12px）\n'
+            'buttonPadding        — 按钮内边距\n'
+            'accent               — 允许/始终允许按钮色\n'
+            'textSecondary        — 取消按钮文字色\n'
+            '\n'
+            '暗色模式下 filled 按钮文字为深色 #1A1A1A，\n'
+            '亮色模式下为白色。描边按钮文字 = accent 色，\n'
+            '边框 = accent 色 39% 透明度。',
+      ),
     ],
   ),
   _Feature(
@@ -212,39 +229,25 @@ final _features = <_Feature>[
             '}',
       ),
       CodeSnippet(
-        'DefaultChatBus 处理',
-        'DefaultChatBus._processEventStream 收到 ExchangeError：\n'
+        '失败态触发机制',
+        '目前有两种方式触发 Exchange 失败态：\n'
             '\n'
-            'case ExchangeError e:\n'
-            '  _updateExchange(exchangeId, (ex) => ex.copyWith(\n'
-            '    status: ExchangeStatus.failed,       // ① 设失败态\n'
-            '    errorMessage: e.errorMessage,        // ② 存错误消息\n'
-            '  ));\n'
-            '  return;  // ← ③ 结束事件流处理\n'
+            '// 方式A：ExchangeError（显示错误块）\n'
+            'yield ExchangeError(id, \'消息…\');\n'
+            '→ 设 status=failed + errorMessage\n'
+            '→ ChatScreen 渲染"错误"头部 + 错误消息\n'
+            '→ 折叠时头部后显示消息摘要（新增）\n'
             '\n'
-            '→ ChatScreen 检测到 failed+errorMessage\n'
-            '→ 渲染错误头部（红色圆点 + "错误"标签）\n'
-            '→ 点击展开查看详细错误消息',
-      ),
-      CodeSnippet(
-        '三种错误场景',
-        '// 场景A：思考阶段直接报错\n'
-            'yield ExchangeError(id, \'超时: 服务无响应\');\n'
+            '// 方式B：ToolCallCompleted(isError)（工具变红）\n'
+            'yield ToolCallCompleted(id, \'tool\', \'✗ 错误…\',\n'
+            '    isError: true);\n'
+            '→ 设 status=failed，不设 errorMessage\n'
+            '→ 工具块以红色边框/文字显示错误结果\n'
+            '→ 不额外渲染错误块（避免信息重复）\n'
             '\n'
-            '// 场景B：工具调用失败后报错\n'
-            'yield ToolCallStarted(id, \'t\', \'analyze\', {});\n'
-            'yield ToolCallCompleted(id, \'t\', \'失败: 权限不足\');\n'
-            'yield ExchangeError(id, \'工具执行失败\');\n'
-            '\n'
-            '// 场景C：其他代码抛出异常\n'
-            '// → _processEventStream catch 分支\n'
-            '} catch (e) {\n'
-            '  _updateExchange(exchangeId, (ex) => ex.copyWith(\n'
-            '    status: ExchangeStatus.failed,\n'
-            '    errorMessage: e.toString(),\n'
-            '  ));\n'
-            '  if (!_disposed) notifyListeners();\n'
-            '}',
+            '// 两种方式均触发块级错误风格：\n'
+            '// _isFailed(exchange) → thinking/tool/content\n'
+            '// 所有 block 文字变为 theme.error 红色',
       ),
     ],
   ),
@@ -542,7 +545,12 @@ final _features = <_Feature>[
             '  textSecondary: Color(0xFF94a3b8),\n'
             '  accent: Color(0xFF3b82f6),\n'
             '  border: Color(0x1FFFFFFF),\n'
-            '  // ... 共 ~50+ 个命名参数\n'
+            '  smallButtonHeight: 24,      // 确认门按钮高度\n'
+            '  blockHeaderPadding: EdgeInsets.fromLTRB(10,6,0,4),\n'
+            '  confirmPadding: EdgeInsets.fromLTRB(10,8,10,8),\n'
+            '  codeBlockPadding: EdgeInsets.all(8),\n'
+            '  buttonPadding: EdgeInsets.symmetric(horizontal:12),\n'
+            '  // ... 共 ~60+ 个命名参数\n'
             ');',
       ),
       CodeSnippet(
