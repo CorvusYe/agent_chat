@@ -468,7 +468,7 @@ class _CompactBtn extends StatelessWidget {
             borderRadius: BorderRadius.circular(theme.radiusSm),
             side: filled
                 ? BorderSide.none
-                : BorderSide(color: color.withAlpha(100)),
+                : BorderSide(color: theme.buttonBorderColor),
           ),
           padding: theme.buttonPadding,
           textStyle: TextStyle(
