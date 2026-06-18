@@ -186,6 +186,10 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
     if (!mounted) return;
     // 第4轮：并行工具
     bus.sendMessage('分析项目');
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+    // 第5轮：报错场景
+    bus.sendMessage('报告错误');
   }
 
   Stream<ExchangeEvent> _mockReply(String text) async* {
@@ -307,6 +311,24 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
       yield ContentDelta(id, 'content', reply);
       yield ContentCompleted(id, 'content', reply);
       yield TokenCount(id, 32);
+      return;
+    }
+
+    if (text == '报告错误') {
+      yield ThinkingStarted(id, 'think');
+      yield ThinkingDelta(id, 'think', '正在连接远程服务…');
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (_cancelled) return;
+      yield ThinkingCompleted(id, 'think', '连接超时');
+      // macOS 风格错误展示（#FF3B30 red）
+      yield ExchangeError(
+        id,
+        '请求超时: 服务器无响应 (30s)\n\n'
+        '可能的原因：\n'
+        '  • 网络连接不稳定\n'
+        '  • 服务器负载过高\n\n'
+        '建议稍后重试。',
+      );
       return;
     }
   }
