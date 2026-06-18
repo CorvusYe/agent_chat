@@ -424,7 +424,7 @@ class _CompactBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 26,
+      height: 24,
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
@@ -441,7 +441,7 @@ class _CompactBtn extends StatelessWidget {
                 : BorderSide(color: color.withAlpha(100)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
         child: Text(label),
       ),
