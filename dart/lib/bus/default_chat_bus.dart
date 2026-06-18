@@ -251,10 +251,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             if (e.isError) {
               _updateExchange(
                 exchangeId,
-                (ex) => ex.copyWith(
-                  status: ExchangeStatus.failed,
-                  errorMessage: e.result,
-                ),
+                (ex) => ex.copyWith(status: ExchangeStatus.failed),
               );
             }
 
