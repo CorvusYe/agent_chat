@@ -130,14 +130,31 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
           (block.content == null || block.content!.isEmpty)) {
         continue;
       }
+      final collapseKey = '${widget.exchange.id}_${block.id}';
       final collapsed = _isCollapsed(block);
+      final sub = collapsed ? _firstParagraph(block) : null;
+
       final innerSlivers = <Widget>[
-        SliverPinnedHeader(child: _buildInlineHeader(block, theme)),
+        SliverPinnedHeader(
+          child: _buildHeader(
+            context: context,
+            block: block,
+            theme: theme,
+            collapseKey: collapseKey,
+            collapsed: collapsed,
+            subtitle: sub,
+          ),
+        ),
       ];
       if (!collapsed) {
         innerSlivers.add(
           SliverToBoxAdapter(
-            child: _buildBlockContent(block, theme, viewportHeight),
+            child: _buildContent(
+              context: context,
+              block: block,
+              theme: theme,
+              viewportHeight: viewportHeight,
+            ),
           ),
         );
       }
@@ -159,11 +176,27 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       final errKey = _errorCollapseKey;
       final errSlivers = <Widget>[
         SliverToBoxAdapter(
-          child: _buildErrorHeader(errKey, errCollapsed, theme),
+          child: _buildHeader(
+            context: context,
+            block: null,
+            theme: theme,
+            collapseKey: errKey,
+            collapsed: errCollapsed,
+            subtitle: errCollapsed ? widget.exchange.errorMessage : null,
+          ),
         ),
       ];
       if (!errCollapsed) {
-        errSlivers.add(SliverToBoxAdapter(child: _buildErrorContent(theme)));
+        errSlivers.add(
+          SliverToBoxAdapter(
+            child: _buildContent(
+              context: context,
+              block: null,
+              theme: theme,
+              viewportHeight: 0,
+            ),
+          ),
+        );
       }
       slivers.add(SliverMainAxisGroup(slivers: errSlivers));
     }
@@ -171,16 +204,37 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
     return SliverMainAxisGroup(slivers: slivers);
   }
 
-  // ═══════════════════════════════════════════════════════
-  //  Block header — BlockHeader widget
-  // ═══════════════════════════════════════════════════════
+  /// 构建 block 或 error 的头部。
+  /// [block] 不为 null → animated block header；null → static error header。
+  Widget _buildHeader({
+    required BuildContext context,
+    required ChatBlock? block,
+    required ChatTheme theme,
+    required String collapseKey,
+    required bool collapsed,
+    String? subtitle,
+  }) {
+    if (block == null) {
+      return BlockHeader(
+        dot: Container(
+          width: theme.timelineDotSize,
+          height: theme.timelineDotSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.bgPrimary,
+            border: Border.all(color: theme.error, width: 2),
+          ),
+        ),
+        icon: Icons.error_outline,
+        label: '错误',
+        color: theme.error,
+        onTap: () => _onToggleCollapsed(collapseKey, collapsed),
+        expanded: !collapsed,
+        subtitle: subtitle,
+      );
+    }
 
-  Widget _buildInlineHeader(ChatBlock block, ChatTheme theme) {
-    final collapseKey = '${widget.exchange.id}_${block.id}';
-    final collapsed = _isCollapsed(block);
-    final sub = collapsed ? _firstParagraph(block) : null;
     final dotColor = dotColorFor(block, theme);
-
     return BlockAnimController(
       block: block,
       builder: (context, anim) => BlockHeader(
@@ -209,22 +263,40 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
         color: anim.applyBreathing(headerColorFor(block, theme)),
         onTap: () => _onToggleCollapsed(collapseKey, collapsed),
         expanded: !collapsed,
-        subtitle: sub,
+        subtitle: subtitle,
         startTime: block.startTime,
         elapsed: block.elapsed,
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════
-  //  Block content — BlockContent widget
-  // ═══════════════════════════════════════════════════════
+  /// 构建 block 或 error 的内容。
+  /// [block] 不为 null → animated block content；null → static error content。
+  Widget _buildContent({
+    required BuildContext context,
+    required ChatBlock? block,
+    required ChatTheme theme,
+    required double viewportHeight,
+  }) {
+    if (block == null) {
+      final isLight = theme.bgPrimary.computeLuminance() > 0.5;
+      final verticalAlpha = isLight ? 0.25 : 0.2;
+      return BlockContent(
+        lineColor: theme.error.withValues(alpha: verticalAlpha),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10, bottom: 4),
+          child: Text(
+            widget.exchange.errorMessage!,
+            style: TextStyle(
+              color: theme.textSecondary,
+              fontSize: theme.fontSizeSm,
+              height: 1.5,
+            ),
+          ),
+        ),
+      );
+    }
 
-  Widget _buildBlockContent(
-    ChatBlock block,
-    ChatTheme theme,
-    double viewportHeight,
-  ) {
     return BlockAnimController(
       block: block,
       builder: (context, anim) => BlockContent(
@@ -238,58 +310,6 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
               widget.bus,
               widget.exchange,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════
-  //  Error header — BlockHeader widget
-  // ═══════════════════════════════════════════════════════
-
-  Widget _buildErrorHeader(
-    String collapseKey,
-    bool collapsed,
-    ChatTheme theme,
-  ) {
-    return BlockHeader(
-      dot: Container(
-        width: theme.timelineDotSize,
-        height: theme.timelineDotSize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: theme.bgPrimary,
-          border: Border.all(color: theme.error, width: 2),
-        ),
-      ),
-      icon: Icons.error_outline,
-      label: '错误',
-      color: theme.error,
-      onTap: () => _onToggleCollapsed(collapseKey, collapsed),
-      expanded: !collapsed,
-      subtitle: collapsed ? widget.exchange.errorMessage : null,
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════
-  //  Error content — BlockContent widget
-  // ═══════════════════════════════════════════════════════
-
-  Widget _buildErrorContent(ChatTheme theme) {
-    final isLight = theme.bgPrimary.computeLuminance() > 0.5;
-    final verticalAlpha = isLight ? 0.25 : 0.2;
-
-    return BlockContent(
-      lineColor: theme.error.withValues(alpha: verticalAlpha),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 10, bottom: 4),
-        child: Text(
-          widget.exchange.errorMessage!,
-          style: TextStyle(
-            color: theme.textSecondary,
-            fontSize: theme.fontSizeSm,
-            height: 1.5,
           ),
         ),
       ),
