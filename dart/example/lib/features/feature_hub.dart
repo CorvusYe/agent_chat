@@ -533,40 +533,71 @@ final _features = <_Feature>[
     (_) => const CustomThemeDemo(),
     [
       CodeSnippet(
-        'ChatTheme 构造函数',
-        '// 从零构建 ChatTheme：\n'
-            'final myTheme = ChatTheme(\n'
-            '  bgPrimary: Color(0xFF1a1a2e),\n'
-            '  bgSurface: Color(0xFF2d3a5e),\n'
-            '  bgCard: Color(0x05FFFFFF),\n'
-            '  bgInput: Color(0x0AFFFFFF),\n'
-            '  textPrimary: Color(0xFFe0e0e0),\n'
-            '  textContent: Color(0xFFe2e8f0),\n'
-            '  textSecondary: Color(0xFF94a3b8),\n'
-            '  accent: Color(0xFF3b82f6),\n'
-            '  border: Color(0x1FFFFFFF),\n'
-            '  smallButtonHeight: 24,      // 确认门按钮高度\n'
-            '  blockHeaderPadding: EdgeInsets.fromLTRB(10,6,0,4),\n'
-            '  confirmPadding: EdgeInsets.fromLTRB(10,8,10,8),\n'
-            '  codeBlockPadding: EdgeInsets.all(8),\n'
-            '  buttonPadding: EdgeInsets.symmetric(horizontal:12),\n'
-            '  // ... 共 ~60+ 个命名参数\n'
+        'macOS 亮色主题（完整）',
+        'ChatTheme macOSLightTheme() => ChatTheme(\n'
+            '  bgPrimary: Color(0xFFF5F5F7),     // 灰白底\n'
+            '  bgSurface: Color(0xFFFFFFFF),\n'
+            '  bgInput: Color(0xFFE8E8ED),\n'
+            '  bgCard: Color(0xFFFFFFFF),\n'
+            '  bgCardHeader: Color(0xFFF0F0F5),\n'
+            '  bgCommand: Color(0xFFF0F0F5),\n'
+            '  textPrimary: Color(0xFF1D1D1F),   // 近乎黑\n'
+            '  textContent: Color(0xFF1D1D1F),\n'
+            '  textSecondary: Color(0xFF86868B),\n'
+            '  textToolHeader: Color(0xFF007AFF), // macOS 蓝\n'
+            '  accent: Color(0xFF007AFF),\n'
+            '  accentHover: Color(0xFF0066D6),\n'
+            '  success: Color(0xFF34C759),\n'
+            '  error: Color(0xFFFF3B30),\n'
+            '  warning: Color(0xFFFF9500),\n'
+            '  border: Color(0xFFD2D2D7),\n'
+            '  borderLight: Color(0xFFE5E5EA),\n'
+            '  btnSecondaryBg: Color(0x1F007AFF),\n'
+            '  // ... 其他属性使用默认值（继承自 ChatTheme 构造函数）\n'
             ');',
       ),
       CodeSnippet(
-        'Theme 局部覆盖',
-        '// 用 Theme widget 为子树覆盖 ChatTheme：\n'
+        'macOS 暗色主题（完整）',
+        'ChatTheme macOSDarkTheme() => ChatTheme(\n'
+            '  bgPrimary: Color(0xFF1C1C1E),     // 深灰底\n'
+            '  bgSurface: Color(0xFF2C2C2E),\n'
+            '  bgInput: Color(0xFF3A3A3C),\n'
+            '  bgCard: Color(0xFF2C2C2E),\n'
+            '  bgCardHeader: Color(0xFF363638),\n'
+            '  bgCommand: Color(0xFF363638),\n'
+            '  textPrimary: Color(0xFFF5F5F7),   // 近乎白\n'
+            '  textContent: Color(0xFFF5F5F7),\n'
+            '  textSecondary: Color(0xFF98989D),\n'
+            '  textToolHeader: Color(0xFF64B5F6), // 浅蓝\n'
+            '  accent: Color(0xFF64B5F6),\n'
+            '  accentHover: Color(0xFF4CA9F5),\n'
+            '  success: Color(0xFF30D158),\n'
+            '  error: Color(0xFFFF453A),\n'
+            '  warning: Color(0xFFFF9F0A),\n'
+            '  border: Color(0xFF48484A),\n'
+            '  borderLight: Color(0xFF3A3A3C),\n'
+            '  btnSecondaryBg: Color(0x2F64B5F6),\n'
+            ');',
+      ),
+      CodeSnippet(
+        '使用方式',
+        '// 用 Theme widget 局部覆盖：\n'
             'Theme(\n'
             '  data: ThemeData(\n'
             '    brightness: Brightness.dark,\n'
-            '    extensions: [myCustomChatTheme],\n'
+            '    extensions: [macOSDarkTheme()],\n'
             '  ),\n'
             '  child: ChatScreen(bus: bus),\n'
             ')\n'
             '\n'
-            '// ChatTheme 配合 Color.lerp 可推导衍生色：\n'
-            'final surface = Color.lerp(bgPrimary, white, 0.08)!;\n'
-            'final textSec  = Color.lerp(textPrimary, white, 0.4)!;',
+            '// 或全局注册：\n'
+            'MaterialApp(\n'
+            '  theme: ThemeData(extensions: [macOSLightTheme()]),\n'
+            '  darkTheme: ThemeData(extensions: [macOSDarkTheme()]),\n'
+            ')\n'
+            '\n'
+            '// 每个主题 ~20 个核心颜色属性，其他使用默认值。\n'
+            '// ChatTheme 共约 70 个属性，未指定的走构造函数默认值。',
       ),
     ],
   ),
