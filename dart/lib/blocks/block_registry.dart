@@ -316,6 +316,7 @@ class _ConfirmGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
+    final hasArgs = block.toolArgs != null && block.toolArgs!.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
@@ -328,9 +329,10 @@ class _ConfirmGate extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (block.description != null || block.toolName != null)
+          // 头部：工具名 + 描述
+          if (block.toolName != null || block.description != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: EdgeInsets.only(bottom: hasArgs ? 4 : 6),
               child: Row(
                 children: [
                   if (block.toolName != null)
@@ -358,21 +360,29 @@ class _ConfirmGate extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  if (block.toolArgs != null && block.toolArgs!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 6),
-                      child: Text(
-                        block.toolArgs!.toString(),
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 10,
-                          color: theme.textTertiary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
                 ],
+              ),
+            ),
+          // 工具参数（命令/详情）— 单独一行，突出展示
+          if (hasArgs)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+                decoration: BoxDecoration(
+                  color: theme.bgCommand,
+                  borderRadius: BorderRadius.circular(theme.radiusSm),
+                ),
+                child: Text(
+                  block.toolArgs!.toString(),
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: theme.fontSizeSm,
+                    height: 1.4,
+                    color: theme.textContent,
+                  ),
+                ),
               ),
             ),
           Wrap(
