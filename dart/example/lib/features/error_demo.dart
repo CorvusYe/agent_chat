@@ -96,6 +96,7 @@ class _ErrorDemoState extends State<ErrorDemo> {
       yield ThinkingDelta(id, 'think', '正在连接远程服务…');
       await Future.delayed(const Duration(milliseconds: 500));
       if (_cancelled) return;
+      yield ThinkingCompleted(id, 'think', '连接超时');
       // 超时 → 直接报错（无工具调用，思考后超时）
       yield ExchangeError(
         id,
