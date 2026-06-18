@@ -61,7 +61,7 @@ ChatTheme macOSLightTheme() => ChatTheme(
   chevronColor: const Color(0xFFAEAEB2),
   statColor: const Color(0xFFAEAEB2),
   spinnerColor: const Color(0xFFAEAEB2),
-  btnSecondaryBg: const Color(0x1F007AFF),
+  btnSecondaryBg: const Color(0x1A007AFF), // 浅蓝底
 );
 
 /// macOS 风格暗色主题
@@ -119,7 +119,7 @@ ChatTheme macOSDarkTheme() => ChatTheme(
   chevronColor: const Color(0xFF6E6E73),
   statColor: const Color(0xFF6E6E73),
   spinnerColor: const Color(0xFF6E6E73),
-  btnSecondaryBg: const Color(0x2F64B5F6),
+  btnSecondaryBg: const Color(0x2A64B5F6), // 浅蓝底
 );
 
 class CustomThemeDemo extends StatefulWidget {

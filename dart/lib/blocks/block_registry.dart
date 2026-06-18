@@ -460,7 +460,7 @@ class _CompactBtn extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          backgroundColor: filled ? color : Colors.transparent,
+          backgroundColor: filled ? color : theme.btnSecondaryBg,
           foregroundColor: filled
               ? (Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF1A1A1A)
