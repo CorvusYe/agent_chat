@@ -580,7 +580,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
               clipBehavior: Clip.none,
               children: [
                 Positioned(
-                  left: (gutterW - lineW) / 2,
+                  left: (gutterW - lineW) / 2 + dotSize / 2,
                   top: dotCenterY,
                   bottom: widget.isLastBlock ? 8 : 0,
                   child: Container(width: lineW, color: lineColor),
