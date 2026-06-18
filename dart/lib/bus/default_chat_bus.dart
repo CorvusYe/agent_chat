@@ -385,10 +385,12 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
       if (pendingBlocks.isNotEmpty) {
         _replaceFlushGroup(exchangeId, pendingBlocks);
       }
-      final isCancelled = _exchanges
+      final terminalStatus = _exchanges
           .where((e) => e.id == exchangeId)
-          .any((e) => e.status == ExchangeStatus.cancelled);
-      if (!isCancelled) {
+          .map((e) => e.status)
+          .firstOrNull;
+      if (terminalStatus != ExchangeStatus.cancelled &&
+          terminalStatus != ExchangeStatus.failed) {
         _completeExchange(exchangeId);
       }
     } catch (e) {
