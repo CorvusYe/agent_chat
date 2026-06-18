@@ -545,7 +545,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
           // 纵向线段 — 使用与圆点一致的状态色
           Positioned(
             left: -12,
-            top: 12,
+            top: 13,
             bottom: widget.isLastBlock ? 8 : 0,
             child: Container(width: 2, color: lineColor),
           ),
