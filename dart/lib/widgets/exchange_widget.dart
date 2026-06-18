@@ -543,9 +543,9 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
         headerContentH +
         theme.blockHeaderPadding.bottom;
     final dotCenterY = headerH / 2;
-    const dotSize = 12.0;
-    const lineW = 2.0;
-    const gutterW = dotSize + 8; // 时间轴列宽度
+    final dotSize = theme.timelineDotSize;
+    final lineW = theme.timelineLineWidth;
+    final gutterW = theme.timelineGutter;
     // 圆点 widget
     final dotWidget = _isRunning && _rotationCtrl != null
         ? SizedBox(

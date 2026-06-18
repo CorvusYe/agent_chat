@@ -116,6 +116,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double smallButtonHeight;
   final double inputMinHeight;
   final double contentMaxHeight;
+  final double timelineGutter;
+  final double timelineDotSize;
+  final double timelineLineWidth;
 
   // ═══════════════════════════════════════
   //  动画周期
@@ -201,6 +204,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.smallButtonHeight = 24,
     this.inputMinHeight = 36,
     this.contentMaxHeight = 2000,
+    this.timelineGutter = 20,
+    this.timelineDotSize = 12,
+    this.timelineLineWidth = 2,
     // 动画
     this.breathingDuration = const Duration(milliseconds: 600),
     this.rotationDuration = const Duration(milliseconds: 1000),
@@ -334,6 +340,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? smallButtonHeight,
     double? inputMinHeight,
     double? contentMaxHeight,
+    double? timelineGutter,
+    double? timelineDotSize,
+    double? timelineLineWidth,
     Duration? breathingDuration,
     Duration? rotationDuration,
     Duration? placeholderBreathingDuration,
@@ -410,6 +419,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       smallButtonHeight: smallButtonHeight ?? this.smallButtonHeight,
       inputMinHeight: inputMinHeight ?? this.inputMinHeight,
       contentMaxHeight: contentMaxHeight ?? this.contentMaxHeight,
+      timelineGutter: timelineGutter ?? this.timelineGutter,
+      timelineDotSize: timelineDotSize ?? this.timelineDotSize,
+      timelineLineWidth: timelineLineWidth ?? this.timelineLineWidth,
       breathingDuration: breathingDuration ?? this.breathingDuration,
       rotationDuration: rotationDuration ?? this.rotationDuration,
       placeholderBreathingDuration:
@@ -512,6 +524,14 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       contentMaxHeight:
           lerpDouble(contentMaxHeight, other.contentMaxHeight, t) ??
           contentMaxHeight,
+      timelineGutter:
+          lerpDouble(timelineGutter, other.timelineGutter, t) ?? timelineGutter,
+      timelineDotSize:
+          lerpDouble(timelineDotSize, other.timelineDotSize, t) ??
+          timelineDotSize,
+      timelineLineWidth:
+          lerpDouble(timelineLineWidth, other.timelineLineWidth, t) ??
+          timelineLineWidth,
       breathingDuration: t < 0.5 ? breathingDuration : other.breathingDuration,
       rotationDuration: t < 0.5 ? rotationDuration : other.rotationDuration,
       placeholderBreathingDuration: t < 0.5

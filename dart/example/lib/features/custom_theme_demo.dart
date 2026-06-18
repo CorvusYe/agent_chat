@@ -64,6 +64,10 @@ ChatTheme macOSLightTheme() => ChatTheme(
   btnSecondaryBg: const Color(0x1A007AFF), // 浅蓝底
   resultBg: const Color(0x0A000000),
   buttonBorderColor: const Color(0x33000000), // 极淡灰边框
+  // macOS 时间轴
+  timelineGutter: 24,
+  timelineDotSize: 12,
+  timelineLineWidth: 2,
   // macOS 更大的圆角
   radiusMd: 6,
   radiusLg: 8,
@@ -131,6 +135,10 @@ ChatTheme macOSDarkTheme() => ChatTheme(
   btnSecondaryBg: const Color(0x2A64B5F6), // 浅蓝底
   resultBg: const Color(0x1A000000),
   buttonBorderColor: const Color(0x33FFFFFF), // 极淡灰边框
+  // macOS 时间轴
+  timelineGutter: 24,
+  timelineDotSize: 12,
+  timelineLineWidth: 2,
   // macOS 更大的圆角
   radiusMd: 6,
   radiusLg: 8,
