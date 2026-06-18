@@ -62,6 +62,14 @@ ChatTheme macOSLightTheme() => ChatTheme(
   statColor: const Color(0xFFAEAEB2),
   spinnerColor: const Color(0xFFAEAEB2),
   btnSecondaryBg: const Color(0x1A007AFF), // 浅蓝底
+  resultBg: const Color(0x0A000000),
+  // macOS 更大的圆角
+  radiusMd: 6,
+  radiusLg: 8,
+  radiusXl: 10,
+  // macOS 更宽松的间距
+  spacingWindow: 16,
+  spacingLg: 20,
 );
 
 /// macOS 风格暗色主题
@@ -120,6 +128,14 @@ ChatTheme macOSDarkTheme() => ChatTheme(
   statColor: const Color(0xFF6E6E73),
   spinnerColor: const Color(0xFF6E6E73),
   btnSecondaryBg: const Color(0x2A64B5F6), // 浅蓝底
+  resultBg: const Color(0x1A000000),
+  // macOS 更大的圆角
+  radiusMd: 6,
+  radiusLg: 8,
+  radiusXl: 10,
+  // macOS 更宽松的间距
+  spacingWindow: 16,
+  spacingLg: 20,
 );
 
 class CustomThemeDemo extends StatefulWidget {

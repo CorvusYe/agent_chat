@@ -59,6 +59,7 @@ class ChatThemes {
     statColor: Color(0x4DFFFFFF),
     spinnerColor: Color(0x4DFFFFFF),
     btnSecondaryBg: Color(0x00000000),
+    resultBg: Color(0x0A000000),
   );
 
   static const _fluent = ChatTheme(
@@ -106,6 +107,7 @@ class ChatThemes {
     statColor: Color(0xFFa0a0a0),
     spinnerColor: Color(0xFFa0a0a0),
     btnSecondaryBg: Color(0x120078d4),
+    resultBg: Color(0x0A000000),
   );
 
   static const _fluentDark = ChatTheme(
@@ -153,5 +155,6 @@ class ChatThemes {
     statColor: Color(0xFF707070),
     spinnerColor: Color(0xFF707070),
     btnSecondaryBg: Color(0x1F479ef5),
+    resultBg: Color(0x1A000000),
   );
 }

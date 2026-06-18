@@ -73,6 +73,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final Color statColor;
   final Color spinnerColor;
   final Color btnSecondaryBg;
+  final Color resultBg;
 
   // ═══════════════════════════════════════
   //  排版
@@ -168,6 +169,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     required this.statColor,
     required this.spinnerColor,
     required this.btnSecondaryBg,
+    required this.resultBg,
     // 排版（可选的默认值）
     this.fontSizeSm = 12,
     this.fontSizeMd = 13,
@@ -252,6 +254,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     statColor: Color(0x4DFFFFFF),
     spinnerColor: Color(0x4DFFFFFF),
     btnSecondaryBg: Color(0x00000000),
+    resultBg: Color(0x0A000000),
     contentMaxHeight: 2000,
   );
 
@@ -301,6 +304,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     Color? statColor,
     Color? spinnerColor,
     Color? btnSecondaryBg,
+    Color? resultBg,
     double? fontSizeSm,
     double? fontSizeMd,
     double? fontSizeLg,
@@ -375,6 +379,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       statColor: statColor ?? this.statColor,
       spinnerColor: spinnerColor ?? this.spinnerColor,
       btnSecondaryBg: btnSecondaryBg ?? this.btnSecondaryBg,
+      resultBg: resultBg ?? this.resultBg,
       fontSizeSm: fontSizeSm ?? this.fontSizeSm,
       fontSizeMd: fontSizeMd ?? this.fontSizeMd,
       fontSizeLg: fontSizeLg ?? this.fontSizeLg,
@@ -455,6 +460,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       statColor: Color.lerp(statColor, other.statColor, t)!,
       spinnerColor: Color.lerp(spinnerColor, other.spinnerColor, t)!,
       btnSecondaryBg: Color.lerp(btnSecondaryBg, other.btnSecondaryBg, t)!,
+      resultBg: Color.lerp(resultBg, other.resultBg, t)!,
       fontSizeSm: lerpDouble(fontSizeSm, other.fontSizeSm, t) ?? fontSizeSm,
       fontSizeMd: lerpDouble(fontSizeMd, other.fontSizeMd, t) ?? fontSizeMd,
       fontSizeLg: lerpDouble(fontSizeLg, other.fontSizeLg, t) ?? fontSizeLg,

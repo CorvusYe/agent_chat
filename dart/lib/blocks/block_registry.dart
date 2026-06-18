@@ -218,9 +218,7 @@ class _ToolBlock extends StatelessWidget {
     final headerTextColor = isError ? theme.error : theme.textToolHeader;
     final resultBg = isError
         ? theme.error.withAlpha(isDark ? 15 : 10)
-        : isDark
-        ? const Color(0x1A000000)
-        : const Color(0x0A000000);
+        : theme.resultBg;
     final resultColor = isError ? theme.error : theme.textToolResult;
 
     return Container(
