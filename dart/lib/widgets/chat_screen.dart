@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import '../bus/chat_bus.dart';
 import '../models/exchange.dart';
-import '../models/chat_block.dart';
 import '../theme/chat_theme.dart';
-import '../blocks/block_registry.dart';
 import 'exchange_widget.dart';
+import 'block_timeline_section.dart';
 import 'stats_bar.dart';
 
 /// ChatScreen — 聊天界面主 Widget。
@@ -43,12 +42,6 @@ class _ChatScreenState extends State<ChatScreen>
 
   int _lastExchangeCount = 0;
   int _lastBlockCount = 0;
-
-  /// Blocks the user manually expanded — override auto-collapse.
-  final Set<String> _manuallyExpandedKeys = {};
-
-  /// Blocks the user manually collapsed — override auto-expand.
-  final Set<String> _manuallyCollapsedKeys = {};
 
   ChatBus get bus => widget.bus;
 
@@ -125,54 +118,6 @@ class _ChatScreenState extends State<ChatScreen>
     final currentScroll = _scrollCtrl.position.pixels;
     if (maxScroll - currentScroll > 150) return; // not near end, skip
     _scrollCtrl.jumpTo(maxScroll);
-  }
-
-  /// Whether this block is the single latest block across all exchanges.
-  bool _isLatestBlock(ChatBlock block, Exchange exchange) {
-    for (final ex in bus.exchanges.reversed) {
-      for (final g in ex.groups.reversed) {
-        if (g.blocks.isNotEmpty) {
-          return '${exchange.id}_${block.id}' == '${ex.id}_${g.blocks.last.id}';
-        }
-      }
-    }
-    return false;
-  }
-
-  /// Computed dynamically: collapsed state = default (latest=expanded) with manual overrides.
-  /// Parallel blocks in the same group stay expanded until all complete.
-  bool _isCollapsed(ChatBlock block, Exchange exchange) {
-    final key = '${exchange.id}_${block.id}';
-    if (_manuallyExpandedKeys.contains(key)) return false;
-    if (_manuallyCollapsedKeys.contains(key)) return true;
-
-    // If any sibling in the same group is still running, keep expanded
-    for (final group in exchange.groups) {
-      if (group.blocks.any((b) => b.id == block.id)) {
-        if (group.blocks.any(
-          (b) =>
-              b.status == BlockStatus.running ||
-              b.status == BlockStatus.pending,
-        )) {
-          return false;
-        }
-        break;
-      }
-    }
-
-    return !_isLatestBlock(block, exchange);
-  }
-
-  void _onToggleCollapsed(String collapseKey, bool currentlyCollapsed) {
-    setState(() {
-      if (currentlyCollapsed) {
-        _manuallyExpandedKeys.add(collapseKey);
-        _manuallyCollapsedKeys.remove(collapseKey);
-      } else {
-        _manuallyCollapsedKeys.add(collapseKey);
-        _manuallyExpandedKeys.remove(collapseKey);
-      }
-    });
   }
 
   void _handleSend() {
@@ -282,9 +227,6 @@ class _ChatScreenState extends State<ChatScreen>
         viewportWidth,
       );
 
-      // Exchange group: pinned exchange header + per-block inner groups.
-      // Blocks get their own SliverMainAxisGroup so their pinned headers
-      // push each other within the exchange without pushing the exchange header.
       final groupSlivers = <Widget>[
         SliverPinnedHeader(
           child: _LastUserStickyHeader(
@@ -295,308 +237,19 @@ class _ChatScreenState extends State<ChatScreen>
         ),
       ];
 
-      for (final block in allBlocks) {
-        // 空内容的 content block 整体跳过（tool-only 响应不显示"回答"）
-        if (block.type == BlockType.content &&
-            (block.content == null || block.content!.isEmpty)) {
-          continue;
-        }
-        final collapsed = _isCollapsed(block, exchange);
-        final innerSlivers = <Widget>[
-          SliverPinnedHeader(
-            child: _buildInlineHeader(context, block, exchange, theme),
-          ),
-        ];
-        if (!collapsed) {
-          innerSlivers.add(
-            SliverToBoxAdapter(
-              child: _buildBlockContent(
-                context,
-                theme,
-                block,
-                bus,
-                exchange,
-                viewportHeight,
-              ),
-            ),
-          );
-        }
-        groupSlivers.add(SliverMainAxisGroup(slivers: innerSlivers));
-      }
-
-      if (shouldShowThinkingPlaceholder(exchange)) {
-        groupSlivers.add(
-          SliverToBoxAdapter(
-            child: buildThinkingPlaceholder(context, exchange),
-          ),
-        );
-      }
-
-      if (exchange.status == ExchangeStatus.failed &&
+      final hasBlocks = allBlocks.isNotEmpty;
+      final hasThinking = shouldShowThinkingPlaceholder(exchange);
+      final hasError =
+          exchange.status == ExchangeStatus.failed &&
           exchange.errorMessage != null &&
-          exchange.errorMessage!.isNotEmpty) {
-        final errCollapsed = _isErrorCollapsed(exchange);
-        final errKey = _errorCollapseKey(exchange);
-        final errSlivers = <Widget>[
-          SliverToBoxAdapter(
-            child: _buildErrorHeader(
-              context,
-              theme,
-              errKey,
-              errCollapsed,
-              exchange.errorMessage!,
-            ),
-          ),
-        ];
-        if (!errCollapsed) {
-          errSlivers.add(
-            SliverToBoxAdapter(
-              child: _buildErrorContent(context, exchange.errorMessage!, theme),
-            ),
-          );
-        }
-        groupSlivers.add(SliverMainAxisGroup(slivers: errSlivers));
+          exchange.errorMessage!.isNotEmpty;
+      if (hasBlocks || hasThinking || hasError) {
+        groupSlivers.add(BlockTimelineSection(exchange: exchange, bus: bus));
       }
 
       slivers.add(SliverMainAxisGroup(slivers: groupSlivers));
     }
     return slivers;
-  }
-
-  Widget _buildBlockContent(
-    BuildContext context,
-    ChatTheme theme,
-    ChatBlock block,
-    ChatBus bus,
-    Exchange exchange,
-    double viewportHeight,
-  ) {
-    return BlockAnimController(
-      block: block,
-      builder: (context, anim) {
-        final lineColor = anim.applyBreathing(dotColorFor(block, theme));
-
-        return Padding(
-          padding: theme.blockPadding,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // 左侧竖线 — 与 timeline gutter 中心对齐
-              Positioned(
-                left: -(theme.timelineGutter / 2) - 1,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  width: theme.timelineLineWidth,
-                  color: lineColor,
-                ),
-              ),
-              // 内容
-              Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: viewportHeight * 0.618,
-                  ),
-                  child: SingleChildScrollView(
-                    child: BlockRegistry.build(context, block, bus, exchange),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  String _errorCollapseKey(Exchange exchange) => '${exchange.id}_error';
-
-  bool _isErrorCollapsed(Exchange exchange) {
-    final key = _errorCollapseKey(exchange);
-    if (_manuallyExpandedKeys.contains(key)) return false;
-    if (_manuallyCollapsedKeys.contains(key)) return true;
-    return false; // 默认展开
-  }
-
-  Widget _buildErrorHeader(
-    BuildContext context,
-    ChatTheme theme,
-    String collapseKey,
-    bool collapsed,
-    String errorMessage,
-  ) {
-    return SizedBox(
-      height: 28.0,
-      child: Padding(
-        padding: EdgeInsets.only(left: theme.spacingLg),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // 圆点 — 与 timeline gutter 中心对齐
-            Positioned(
-              left: theme.timelineGutter / 2 - theme.timelineDotSize / 2,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: Container(
-                  width: theme.timelineDotSize,
-                  height: theme.timelineDotSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.bgPrimary,
-                    border: Border.all(color: theme.error, width: 2),
-                  ),
-                ),
-              ),
-            ),
-            InkWell(
-              onTap: () => _onToggleCollapsed(collapseKey, collapsed),
-              child: buildBlockHeader(
-                context: context,
-                icon: Icons.error_outline,
-                label: '错误',
-                color: theme.error,
-                theme: theme,
-                showChevron: true,
-                expanded: !collapsed,
-                subtitle: collapsed ? errorMessage : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorContent(
-    BuildContext context,
-    String errorMessage,
-    ChatTheme theme,
-  ) {
-    final isLight = theme.bgPrimary.computeLuminance() > 0.5;
-    final verticalAlpha = isLight ? 0.25 : 0.2;
-
-    return Padding(
-      padding: EdgeInsets.only(left: theme.spacingLg),
-      child: Padding(
-        padding: theme.blockPadding,
-        child: Stack(
-          children: [
-            // 左侧竖线 — 与 timeline gutter 中心对齐
-            Positioned(
-              left: theme.timelineGutter / 2 - theme.timelineLineWidth / 2,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: theme.timelineLineWidth,
-                color: theme.error.withValues(alpha: verticalAlpha),
-              ),
-            ),
-            // 错误消息
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 10, bottom: 4),
-                child: Text(
-                  errorMessage,
-                  style: TextStyle(
-                    color: theme.textSecondary,
-                    fontSize: theme.fontSizeSm,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Extract first paragraph of block content for collapsed subtext.
-  String _firstParagraph(ChatBlock block) {
-    final text = block.toolResult ?? block.content ?? block.description ?? '';
-    if (text.isEmpty) return '';
-    for (final line in text.split('\n')) {
-      final trimmed = line.trim();
-      if (trimmed.isNotEmpty) {
-        return trimmed.length > 50 ? '${trimmed.substring(0, 50)}…' : trimmed;
-      }
-    }
-    return '';
-  }
-
-  Widget _buildInlineHeader(
-    BuildContext context,
-    ChatBlock block,
-    Exchange exchange,
-    ChatTheme theme,
-  ) {
-    final collapseKey = '${exchange.id}_${block.id}';
-    final collapsed = _isCollapsed(block, exchange);
-    final sub = collapsed ? _firstParagraph(block) : null;
-
-    return BlockAnimController(
-      block: block,
-      builder: (context, anim) {
-        final dotColor = dotColorFor(block, theme);
-
-        return SizedBox(
-          height: 28.0,
-          child: Padding(
-            padding: EdgeInsets.only(left: theme.spacingLg),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: theme.timelineGutter / 2 - theme.timelineDotSize / 2,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: anim.isActive
-                        ? SizedBox(
-                            width: theme.timelineDotSize,
-                            height: theme.timelineDotSize,
-                            child: CustomPaint(
-                              painter: RunningDotPainter(
-                                color: dotColor,
-                                rotation: anim.rotationValue,
-                              ),
-                            ),
-                          )
-                        : Container(
-                            width: theme.timelineDotSize,
-                            height: theme.timelineDotSize,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.bgPrimary,
-                              border: Border.all(color: dotColor, width: 2),
-                            ),
-                          ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () => _onToggleCollapsed(collapseKey, collapsed),
-                  child: buildBlockHeader(
-                    context: context,
-                    icon: iconForBlock(block),
-                    label: labelForBlock(block),
-                    color: anim.applyBreathing(headerColorFor(block, theme)),
-                    theme: theme,
-                    showChevron: true,
-                    expanded: !collapsed,
-                    subtitle: sub,
-                    startTime: block.startTime,
-                    elapsed: block.elapsed,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildInput(ChatTheme theme) {
