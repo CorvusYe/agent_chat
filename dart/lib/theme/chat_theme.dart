@@ -107,6 +107,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double iconSizeSm;
   final double iconSizeMd;
   final double buttonHeight;
+  final double smallButtonHeight;
   final double inputMinHeight;
   final double contentMaxHeight;
 
@@ -185,6 +186,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.iconSizeSm = 14,
     this.iconSizeMd = 18,
     this.buttonHeight = 32,
+    this.smallButtonHeight = 24,
     this.inputMinHeight = 36,
     this.contentMaxHeight = 2000,
     // 动画
@@ -309,6 +311,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? iconSizeSm,
     double? iconSizeMd,
     double? buttonHeight,
+    double? smallButtonHeight,
     double? inputMinHeight,
     double? contentMaxHeight,
     Duration? breathingDuration,
@@ -378,6 +381,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       iconSizeSm: iconSizeSm ?? this.iconSizeSm,
       iconSizeMd: iconSizeMd ?? this.iconSizeMd,
       buttonHeight: buttonHeight ?? this.buttonHeight,
+      smallButtonHeight: smallButtonHeight ?? this.smallButtonHeight,
       inputMinHeight: inputMinHeight ?? this.inputMinHeight,
       contentMaxHeight: contentMaxHeight ?? this.contentMaxHeight,
       breathingDuration: breathingDuration ?? this.breathingDuration,
@@ -456,6 +460,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       iconSizeMd: lerpDouble(iconSizeMd, other.iconSizeMd, t) ?? iconSizeMd,
       buttonHeight:
           lerpDouble(buttonHeight, other.buttonHeight, t) ?? buttonHeight,
+      smallButtonHeight:
+          lerpDouble(smallButtonHeight, other.smallButtonHeight, t) ??
+          smallButtonHeight,
       inputMinHeight:
           lerpDouble(inputMinHeight, other.inputMinHeight, t) ?? inputMinHeight,
       contentMaxHeight:

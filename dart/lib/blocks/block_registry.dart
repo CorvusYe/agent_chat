@@ -423,8 +423,9 @@ class _CompactBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ChatTheme.of(context);
     return SizedBox(
-      height: 24,
+      height: theme.smallButtonHeight,
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
@@ -435,13 +436,16 @@ class _CompactBtn extends StatelessWidget {
                     : Colors.white)
               : color,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(theme.radiusSm),
             side: filled
                 ? BorderSide.none
                 : BorderSide(color: color.withAlpha(100)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          textStyle: TextStyle(
+            fontSize: theme.fontSizeSm,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         child: Text(label),
       ),
