@@ -379,13 +379,17 @@ class _ChatScreenState extends State<ChatScreen>
         return Padding(
           padding: theme.blockPadding,
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              // 左侧竖线
+              // 左侧竖线 — 与 timeline gutter 中心对齐
               Positioned(
-                left: 4,
+                left: -(theme.timelineGutter / 2) - 1,
                 top: 0,
                 bottom: 0,
-                child: Container(width: 2, color: lineColor),
+                child: Container(
+                  width: theme.timelineLineWidth,
+                  color: lineColor,
+                ),
               ),
               // 内容
               Padding(
@@ -429,15 +433,15 @@ class _ChatScreenState extends State<ChatScreen>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // 圆点
+            // 圆点 — 与 timeline gutter 中心对齐
             Positioned(
-              left: -17,
+              left: theme.timelineGutter / 2 - theme.timelineDotSize / 2,
               top: 0,
               bottom: 0,
               child: Center(
                 child: Container(
-                  width: 12,
-                  height: 12,
+                  width: theme.timelineDotSize,
+                  height: theme.timelineDotSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: theme.bgPrimary,
@@ -474,35 +478,38 @@ class _ChatScreenState extends State<ChatScreen>
     final verticalAlpha = isLight ? 0.25 : 0.2;
 
     return Padding(
-      padding: theme.blockPadding,
-      child: Stack(
-        children: [
-          // 左侧竖线
-          Positioned(
-            left: 4,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 2,
-              color: theme.error.withValues(alpha: verticalAlpha),
+      padding: EdgeInsets.only(left: theme.spacingLg),
+      child: Padding(
+        padding: theme.blockPadding,
+        child: Stack(
+          children: [
+            // 左侧竖线 — 与 timeline gutter 中心对齐
+            Positioned(
+              left: theme.timelineGutter / 2 - theme.timelineLineWidth / 2,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: theme.timelineLineWidth,
+                color: theme.error.withValues(alpha: verticalAlpha),
+              ),
             ),
-          ),
-          // 错误消息
-          Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: Padding(
-              padding: const EdgeInsets.only(left: 10, bottom: 4),
-              child: Text(
-                errorMessage,
-                style: TextStyle(
-                  color: theme.textSecondary,
-                  fontSize: theme.fontSizeSm,
-                  height: 1.5,
+            // 错误消息
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10, bottom: 4),
+                child: Text(
+                  errorMessage,
+                  style: TextStyle(
+                    color: theme.textSecondary,
+                    fontSize: theme.fontSizeSm,
+                    height: 1.5,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -543,14 +550,14 @@ class _ChatScreenState extends State<ChatScreen>
               clipBehavior: Clip.none,
               children: [
                 Positioned(
-                  left: -17,
+                  left: theme.timelineGutter / 2 - theme.timelineDotSize / 2,
                   top: 0,
                   bottom: 0,
                   child: Center(
                     child: anim.isActive
                         ? SizedBox(
-                            width: 12,
-                            height: 12,
+                            width: theme.timelineDotSize,
+                            height: theme.timelineDotSize,
                             child: CustomPaint(
                               painter: RunningDotPainter(
                                 color: dotColor,
@@ -559,8 +566,8 @@ class _ChatScreenState extends State<ChatScreen>
                             ),
                           )
                         : Container(
-                            width: 12,
-                            height: 12,
+                            width: theme.timelineDotSize,
+                            height: theme.timelineDotSize,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: theme.bgPrimary,

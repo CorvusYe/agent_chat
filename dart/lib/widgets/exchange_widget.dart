@@ -569,7 +569,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
           );
 
     return Padding(
-      padding: EdgeInsets.only(left: 4),
+      padding: EdgeInsets.only(left: theme.spacingLg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -579,16 +579,24 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Positioned(
-                  left: (gutterW - lineW) / 2 + dotSize / 2,
+                // 竖线：充满可用高度，水平居中
+                Positioned.fill(
                   top: dotCenterY,
                   bottom: widget.isLastBlock ? 8 : 0,
-                  child: Container(width: lineW, color: lineColor),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Container(width: lineW, color: lineColor)],
+                  ),
                 ),
+                // 圆点：水平居中，垂直在 dotCenterY
                 Positioned(
-                  left: (gutterW - dotSize) / 2,
+                  left: 0,
+                  right: 0,
                   top: dotCenterY - dotSize / 2,
-                  child: dotWidget,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [dotWidget],
+                  ),
                 ),
               ],
             ),
@@ -876,15 +884,15 @@ class _ThinkingPlaceholderState extends State<_ThinkingPlaceholder>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // 旋转环圆点（不参与脉冲，保持 SweepGradient 可见）
+          // 旋转环圆点 — 与 timeline gutter 中心对齐
           Positioned(
-            left: -17,
+            left: theme.timelineGutter / 2 - theme.timelineDotSize / 2,
             top: 0,
             bottom: 0,
             child: Center(
               child: SizedBox(
-                width: 12,
-                height: 12,
+                width: theme.timelineDotSize,
+                height: theme.timelineDotSize,
                 child: CustomPaint(
                   painter: RunningDotPainter(
                     color: theme.dotThinking,
