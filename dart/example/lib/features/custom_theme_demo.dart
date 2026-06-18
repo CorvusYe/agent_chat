@@ -154,31 +154,143 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
   Future<void> _autoDemo() async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
-    bus.sendMessage('展示 macOS 风格主题');
+    // 第1轮：基础对话（thinking + content）
+    bus.sendMessage('macOS 风格主题预览');
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    // 第2轮：工具调用
+    bus.sendMessage('检查系统状态');
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    // 第3轮：需确认的操作（确认门）
+    bus.sendMessage('清理临时文件');
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    // 第4轮：并行工具
+    bus.sendMessage('分析项目');
   }
 
   Stream<ExchangeEvent> _mockReply(String text) async* {
     _cancelled = false;
     final id = 'ex_${DateTime.now().millisecondsSinceEpoch}';
-    yield ThinkingStarted(id, 't');
-    yield ThinkingDelta(id, 't', '使用 macOS 风格渲染…');
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (_cancelled) return;
-    yield ThinkingCompleted(id, 't', '使用 macOS 风格渲染…');
-    yield ToolCallStarted(id, 'tc', 'macOS_style', {
-      'theme': _dark ? 'dark' : 'light',
-    }, autoApproved: true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (_cancelled) return;
-    yield ToolCallCompleted(id, 'tc', '✓ macOS 风格主题已应用');
-    yield ParallelBoundary(id);
-    yield ContentStarted(id, 'c');
-    const reply =
-        '当前使用的是完整的 macOS 风格 ChatTheme。\n'
-        '亮色模式：#F5F5F7 系统灰白底 + #007AFF 蓝色强调色\n'
-        '暗色模式：#1C1C1E 深灰底 + #64B5F6 浅蓝强调色';
-    yield ContentDelta(id, 'c', reply);
-    yield ContentCompleted(id, 'c', reply);
+
+    if (text == 'macOS 风格主题预览') {
+      yield ThinkingStarted(id, 'think');
+      yield ThinkingDelta(
+        id,
+        'think',
+        '正在应用 macOS 风格主题…\n'
+            '亮色模式使用 #F5F5F7 灰白背景 + #007AFF 强调色\n'
+            '暗色模式使用 #1C1C1E 深灰背景 + #64B5F6 强调色',
+      );
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (_cancelled) return;
+      yield ThinkingCompleted(id, 'think', '主题已应用');
+      yield ContentStarted(id, 'content');
+      const reply =
+          '当前使用的是完整 macOS 风格 ChatTheme，\n'
+          '涵盖背景、文字、强调色、边框、状态点等全部 ~70 个属性。';
+      yield ContentDelta(id, 'content', reply);
+      yield ContentCompleted(id, 'content', reply);
+      yield TokenCount(id, 38);
+      return;
+    }
+
+    if (text == '检查系统状态') {
+      yield ThinkingStarted(id, 'think');
+      yield ThinkingDelta(id, 'think', '正在检查各项系统状态…');
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (_cancelled) return;
+      yield ThinkingCompleted(id, 'think', '开始检查');
+
+      yield ToolCallStarted(id, 'cpu', 'system.cpu', {
+        'target': 'usage',
+      }, autoApproved: true);
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (_cancelled) return;
+      yield ToolCallCompleted(id, 'cpu', 'CPU 使用率: 23% | 温度: 52°C');
+
+      yield ToolCallStarted(id, 'mem', 'system.memory', {
+        'target': 'usage',
+      }, autoApproved: true);
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (_cancelled) return;
+      yield ToolCallCompleted(id, 'mem', '内存使用: 8.2GB / 16GB (51%)');
+
+      yield ParallelBoundary(id);
+      yield ContentStarted(id, 'content');
+      const reply = '系统状态良好，各项指标均在正常范围。';
+      yield ContentDelta(id, 'content', reply);
+      yield ContentCompleted(id, 'content', reply);
+      yield TokenCount(id, 24);
+      return;
+    }
+
+    if (text == '清理临时文件') {
+      yield ThinkingStarted(id, 'think');
+      yield ThinkingDelta(id, 'think', '需要确认清理操作…');
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (_cancelled) return;
+      yield ThinkingCompleted(id, 'think', '需要用户确认');
+
+      yield ToolCallStarted(
+        id,
+        'clean',
+        'file.cleanup',
+        {'target': '/tmp/cache', 'size': '245MB'},
+        requiresConfirm: true,
+        description: '将要删除 /tmp/cache 目录中的临时文件',
+        canAlwaysAllow: true,
+      );
+      yield ParallelBoundary(id);
+
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (_cancelled) return;
+      yield ToolCallCompleted(id, 'clean', '✓ 已清理 245MB 临时文件');
+
+      yield ContentStarted(id, 'content');
+      const reply = '清理完成，释放了 245MB 磁盘空间。';
+      yield ContentDelta(id, 'content', reply);
+      yield ContentCompleted(id, 'content', reply);
+      yield TokenCount(id, 16);
+      return;
+    }
+
+    if (text == '分析项目') {
+      yield ThinkingStarted(id, 'think');
+      yield ThinkingDelta(id, 'think', '并行分析中…');
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (_cancelled) return;
+      yield ThinkingCompleted(id, 'think', '启动并行分析');
+
+      yield ToolCallStarted(id, 'lint', 'project.lint', {
+        'target': 'src/',
+      }, autoApproved: true);
+      yield ToolCallStarted(id, 'test', 'project.test', {
+        'target': 'tests/',
+      }, autoApproved: true);
+      yield ToolCallStarted(id, 'dep', 'project.deps', {
+        'target': 'pubspec.yaml',
+      }, autoApproved: true);
+      yield ParallelBoundary(id);
+
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (_cancelled) return;
+      yield ToolCallCompleted(id, 'lint', '✓ 0 errors, 3 warnings');
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (_cancelled) return;
+      yield ToolCallCompleted(id, 'test', '✓ 42/42 tests passed');
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (_cancelled) return;
+      yield ToolCallCompleted(id, 'dep', '✓ 所有依赖无已知漏洞');
+
+      yield ContentStarted(id, 'content');
+      const reply = '项目分析完成：代码检查通过，测试全部通过，依赖安全。';
+      yield ContentDelta(id, 'content', reply);
+      yield ContentCompleted(id, 'content', reply);
+      yield TokenCount(id, 32);
+      return;
+    }
   }
 
   @override
