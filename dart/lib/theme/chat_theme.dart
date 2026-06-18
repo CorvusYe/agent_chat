@@ -119,6 +119,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double timelineGutter;
   final double timelineDotSize;
   final double timelineLineWidth;
+  final double timelineHeaderHeight;
+  final double contentMaxHeightFactor;
 
   // ═══════════════════════════════════════
   //  动画周期
@@ -207,6 +209,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.timelineGutter = 20,
     this.timelineDotSize = 12,
     this.timelineLineWidth = 2,
+    this.timelineHeaderHeight = 28,
+    this.contentMaxHeightFactor = 0.618,
     // 动画
     this.breathingDuration = const Duration(milliseconds: 600),
     this.rotationDuration = const Duration(milliseconds: 1000),
@@ -265,6 +269,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     resultBg: Color(0x0A000000),
     buttonBorderColor: Color(0x26FFFFFF),
     contentMaxHeight: 2000,
+    timelineHeaderHeight: 28,
+    contentMaxHeightFactor: 0.618,
   );
 
   @override
@@ -343,6 +349,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? timelineGutter,
     double? timelineDotSize,
     double? timelineLineWidth,
+    double? timelineHeaderHeight,
+    double? contentMaxHeightFactor,
     Duration? breathingDuration,
     Duration? rotationDuration,
     Duration? placeholderBreathingDuration,
@@ -422,6 +430,9 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       timelineGutter: timelineGutter ?? this.timelineGutter,
       timelineDotSize: timelineDotSize ?? this.timelineDotSize,
       timelineLineWidth: timelineLineWidth ?? this.timelineLineWidth,
+      timelineHeaderHeight: timelineHeaderHeight ?? this.timelineHeaderHeight,
+      contentMaxHeightFactor:
+          contentMaxHeightFactor ?? this.contentMaxHeightFactor,
       breathingDuration: breathingDuration ?? this.breathingDuration,
       rotationDuration: rotationDuration ?? this.rotationDuration,
       placeholderBreathingDuration:
@@ -532,6 +543,12 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       timelineLineWidth:
           lerpDouble(timelineLineWidth, other.timelineLineWidth, t) ??
           timelineLineWidth,
+      timelineHeaderHeight:
+          lerpDouble(timelineHeaderHeight, other.timelineHeaderHeight, t) ??
+          timelineHeaderHeight,
+      contentMaxHeightFactor:
+          lerpDouble(contentMaxHeightFactor, other.contentMaxHeightFactor, t) ??
+          contentMaxHeightFactor,
       breathingDuration: t < 0.5 ? breathingDuration : other.breathingDuration,
       rotationDuration: t < 0.5 ? rotationDuration : other.rotationDuration,
       placeholderBreathingDuration: t < 0.5

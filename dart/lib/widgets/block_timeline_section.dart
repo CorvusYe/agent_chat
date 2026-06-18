@@ -300,7 +300,9 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       builder: (context, anim) => BlockContent(
         lineColor: anim.applyBreathing(dotColorFor(block, theme)),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: viewportHeight * 0.618),
+          constraints: BoxConstraints(
+            maxHeight: viewportHeight * theme.contentMaxHeightFactor,
+          ),
           child: SingleChildScrollView(
             child: BlockRegistry.build(
               context,
@@ -352,7 +354,7 @@ class BlockHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
     return SizedBox(
-      height: 28.0,
+      height: theme.timelineHeaderHeight,
       child: Row(
         children: [
           SizedBox(
