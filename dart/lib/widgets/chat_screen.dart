@@ -244,6 +244,11 @@ class _ChatScreenState extends State<ChatScreen>
           exchange.errorMessage != null &&
           exchange.errorMessage!.isNotEmpty;
       if (hasBlocks || hasThinking || hasError) {
+        if (theme.timelineTopGap > 0) {
+          groupSlivers.add(
+            SliverToBoxAdapter(child: SizedBox(height: theme.timelineTopGap)),
+          );
+        }
         groupSlivers.add(BlockTimelineSection(exchange: exchange, bus: bus));
       }
 
@@ -254,7 +259,6 @@ class _ChatScreenState extends State<ChatScreen>
 
   Widget _buildInput(ChatTheme theme) {
     final animValue = _focusAnimCtrl.value;
-    const inputContentPadding = EdgeInsets.fromLTRB(4, 6, 4, 8);
     final inputField = Container(
       padding: const EdgeInsets.symmetric(horizontal: 2),
       decoration: theme.inputContainerDecoration(animValue),
@@ -270,7 +274,7 @@ class _ChatScreenState extends State<ChatScreen>
           isCollapsed: true,
           filled: true,
           fillColor: theme.inputFillColor(animValue),
-          contentPadding: inputContentPadding,
+          contentPadding: theme.inputContentPadding,
           hintText: '输入消息…',
           hintStyle: TextStyle(color: theme.textPlaceholder),
           enabledBorder: theme.inputUnderlineBorder(animValue),
@@ -338,7 +342,7 @@ class _ChatScreenState extends State<ChatScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: inputField),
-              const SizedBox(width: 4),
+              SizedBox(width: theme.inputButtonGap),
               sendButton,
             ],
           ),

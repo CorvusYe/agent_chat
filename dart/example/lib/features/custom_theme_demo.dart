@@ -80,16 +80,27 @@ ChatTheme neumorphicMacOSLight() => ChatTheme(
   resultBg: const Color(0x08000000),
   buttonBorderColor: const Color(0x268B939C),
 
-  // ── 尺寸（Neumorphic: 大圆角 + 宽间距） ──
-  timelineGutter: 24,
+  // ── 尺寸（Neumorphic: 大圆角 + 宽间距，阴影需呼吸空间） ──
+  spacingXs: 6,
+  spacingSm: 10,
+  spacingMd: 14,
+  spacingLg: 20,
+  spacingXl: 28,
+  spacingWindow: 20,
+  blockPadding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+  blockHeaderPadding: EdgeInsets.fromLTRB(14, 8, 0, 8),
+  timelineTopGap: 10,
+  confirmPadding: EdgeInsets.fromLTRB(14, 10, 14, 10),
+  codeBlockPadding: EdgeInsets.all(10),
+  inputContentPadding: EdgeInsets.fromLTRB(6, 8, 6, 10),
+  inputButtonGap: 6,
+  timelineGutter: 28,
   timelineDotSize: 12,
   timelineLineWidth: 2,
   radiusSm: 6,
   radiusMd: 10,
   radiusLg: 14,
   radiusXl: 18,
-  spacingWindow: 16,
-  spacingLg: 20,
 );
 
 // ═══════════════════════════════════════════════════════════
@@ -158,16 +169,27 @@ ChatTheme neumorphicMacOSDark() => ChatTheme(
   resultBg: const Color(0x1A000000),
   buttonBorderColor: const Color(0x33FFFFFF),
 
-  // ── 尺寸 ──
-  timelineGutter: 24,
+  // ── 尺寸（与亮色主题一致） ──
+  spacingXs: 6,
+  spacingSm: 10,
+  spacingMd: 14,
+  spacingLg: 20,
+  spacingXl: 28,
+  spacingWindow: 20,
+  blockPadding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+  blockHeaderPadding: EdgeInsets.fromLTRB(14, 8, 0, 8),
+  timelineTopGap: 10,
+  confirmPadding: EdgeInsets.fromLTRB(14, 10, 14, 10),
+  codeBlockPadding: EdgeInsets.all(10),
+  inputContentPadding: EdgeInsets.fromLTRB(6, 8, 6, 10),
+  inputButtonGap: 6,
+  timelineGutter: 28,
   timelineDotSize: 12,
   timelineLineWidth: 2,
   radiusSm: 6,
   radiusMd: 10,
   radiusLg: 14,
   radiusXl: 18,
-  spacingWindow: 16,
-  spacingLg: 20,
 );
 
 // ═══════════════════════════════════════════════════════════

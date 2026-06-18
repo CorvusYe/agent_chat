@@ -108,6 +108,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final EdgeInsets confirmPadding;
   final EdgeInsets codeBlockPadding;
   final EdgeInsets buttonPadding;
+  final EdgeInsets inputContentPadding;
+  final double inputButtonGap;
 
   // ═══════════════════════════════════════
   //  圆角
@@ -127,6 +129,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double inputMinHeight;
   final double contentMaxHeight;
   final double timelineGutter;
+  final double timelineTopGap;
   final double timelineDotSize;
   final double timelineLineWidth;
   final double contentMaxHeightFactor;
@@ -207,6 +210,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.confirmPadding = const EdgeInsets.fromLTRB(10, 8, 10, 8),
     this.codeBlockPadding = const EdgeInsets.all(8),
     this.buttonPadding = const EdgeInsets.symmetric(horizontal: 12),
+    this.inputContentPadding = const EdgeInsets.fromLTRB(4, 6, 4, 8),
+    this.inputButtonGap = 4,
     // 圆角
     this.radiusSm = 2,
     this.radiusMd = 3,
@@ -220,6 +225,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.inputMinHeight = 36,
     this.contentMaxHeight = 2000,
     this.timelineGutter = 20,
+    this.timelineTopGap = 0,
     this.timelineDotSize = 12,
     this.timelineLineWidth = 2,
     this.contentMaxHeightFactor = 0.618,
@@ -423,6 +429,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     EdgeInsets? confirmPadding,
     EdgeInsets? codeBlockPadding,
     EdgeInsets? buttonPadding,
+    EdgeInsets? inputContentPadding,
+    double? inputButtonGap,
     double? radiusSm,
     double? radiusMd,
     double? radiusLg,
@@ -434,6 +442,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? inputMinHeight,
     double? contentMaxHeight,
     double? timelineGutter,
+    double? timelineTopGap,
     double? timelineDotSize,
     double? timelineLineWidth,
     double? contentMaxHeightFactor,
@@ -505,6 +514,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       confirmPadding: confirmPadding ?? this.confirmPadding,
       codeBlockPadding: codeBlockPadding ?? this.codeBlockPadding,
       buttonPadding: buttonPadding ?? this.buttonPadding,
+      inputContentPadding: inputContentPadding ?? this.inputContentPadding,
+      inputButtonGap: inputButtonGap ?? this.inputButtonGap,
       radiusSm: radiusSm ?? this.radiusSm,
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
@@ -516,6 +527,7 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       inputMinHeight: inputMinHeight ?? this.inputMinHeight,
       contentMaxHeight: contentMaxHeight ?? this.contentMaxHeight,
       timelineGutter: timelineGutter ?? this.timelineGutter,
+      timelineTopGap: timelineTopGap ?? this.timelineTopGap,
       timelineDotSize: timelineDotSize ?? this.timelineDotSize,
       timelineLineWidth: timelineLineWidth ?? this.timelineLineWidth,
       contentMaxHeightFactor:
@@ -608,6 +620,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       buttonPadding:
           EdgeInsets.lerp(buttonPadding, other.buttonPadding, t) ??
           buttonPadding,
+      inputContentPadding:
+          EdgeInsets.lerp(inputContentPadding, other.inputContentPadding, t) ??
+          inputContentPadding,
+      inputButtonGap: t < 0.5 ? inputButtonGap : other.inputButtonGap,
       radiusSm: lerpDouble(radiusSm, other.radiusSm, t) ?? radiusSm,
       radiusMd: lerpDouble(radiusMd, other.radiusMd, t) ?? radiusMd,
       radiusLg: lerpDouble(radiusLg, other.radiusLg, t) ?? radiusLg,
@@ -626,6 +642,8 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
           contentMaxHeight,
       timelineGutter:
           lerpDouble(timelineGutter, other.timelineGutter, t) ?? timelineGutter,
+      timelineTopGap:
+          lerpDouble(timelineTopGap, other.timelineTopGap, t) ?? timelineTopGap,
       timelineDotSize:
           lerpDouble(timelineDotSize, other.timelineDotSize, t) ??
           timelineDotSize,
