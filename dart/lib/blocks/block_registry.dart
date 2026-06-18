@@ -429,7 +429,9 @@ class _CompactBtn extends StatelessWidget {
         onPressed: onPressed,
         style: TextButton.styleFrom(
           backgroundColor: filled ? color : Colors.transparent,
-          foregroundColor: filled ? Colors.white : color,
+          foregroundColor: filled
+              ? (color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+              : color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
             side: filled
