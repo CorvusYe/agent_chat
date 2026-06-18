@@ -248,6 +248,15 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             );
             _syncPendingToExchange(exchangeId, pendingBlocks);
             _notifyBlockCompleted(exchangeId, e.blockId);
+            if (e.isError) {
+              _updateExchange(
+                exchangeId,
+                (ex) => ex.copyWith(
+                  status: ExchangeStatus.failed,
+                  errorMessage: e.result,
+                ),
+              );
+            }
 
           case ContentStarted e:
             _blockStartTimes[e.blockId] = DateTime.now();

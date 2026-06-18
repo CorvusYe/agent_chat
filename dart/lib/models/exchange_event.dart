@@ -52,7 +52,13 @@ class ToolCallDelta extends ExchangeEvent {
 class ToolCallCompleted extends ExchangeEvent {
   final String blockId;
   final String result;
-  const ToolCallCompleted(super.exchangeId, this.blockId, this.result);
+  final bool isError;
+  const ToolCallCompleted(
+    super.exchangeId,
+    this.blockId,
+    this.result, {
+    this.isError = false,
+  });
 }
 
 class ContentStarted extends ExchangeEvent {

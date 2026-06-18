@@ -146,7 +146,10 @@ Widget _defaultToolBuilder(
   if (block.requiresConfirm && block.status == BlockStatus.pending) {
     return _ConfirmGate(block: block, bus: bus, exchangeId: exchange.id);
   }
-  return _ToolBlock(block: block);
+  return _ToolBlock(
+    block: block,
+    isError: exchange.status == ExchangeStatus.failed,
+  );
 }
 
 Widget _defaultContentBuilder(
@@ -198,17 +201,31 @@ class _ThinkingBlock extends StatelessWidget {
 
 class _ToolBlock extends StatelessWidget {
   final ChatBlock block;
-  const _ToolBlock({required this.block});
+  final bool isError;
+  const _ToolBlock({required this.block, this.isError = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // 错误状态使用红色系
+    final borderColor = isError ? theme.error.withAlpha(80) : theme.borderLight;
+    final headerBg = isError
+        ? theme.error.withAlpha(isDark ? 25 : 18)
+        : theme.bgCardHeader;
+    final headerTextColor = isError ? theme.error : theme.textToolHeader;
+    final resultBg = isError
+        ? theme.error.withAlpha(isDark ? 15 : 10)
+        : isDark
+        ? const Color(0x1A000000)
+        : const Color(0x0A000000);
+    final resultColor = isError ? theme.error : theme.textToolResult;
+
     return Container(
       decoration: BoxDecoration(
         color: theme.bgCard,
-        border: Border.all(color: theme.borderLight),
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(theme.radiusMd),
       ),
       clipBehavior: Clip.antiAlias,
@@ -222,7 +239,7 @@ class _ToolBlock extends StatelessWidget {
               horizontal: theme.spacingMd,
               vertical: theme.spacingXs + 2,
             ),
-            color: theme.bgCardHeader,
+            color: headerBg,
             child: Row(
               children: [
                 Text(
@@ -231,7 +248,7 @@ class _ToolBlock extends StatelessWidget {
                     fontFamily: 'monospace',
                     fontWeight: FontWeight.w500,
                     fontSize: theme.fontSizeMd,
-                    color: theme.textToolHeader,
+                    color: headerTextColor,
                   ),
                 ),
                 if (block.toolArgs != null && block.toolArgs!.isNotEmpty)
@@ -242,7 +259,7 @@ class _ToolBlock extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: theme.fontSizeSm,
-                        color: theme.textTertiary,
+                        color: isError ? theme.error : theme.textTertiary,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -255,14 +272,14 @@ class _ToolBlock extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(theme.spacingMd),
-              color: isDark ? const Color(0x1A000000) : const Color(0x0A000000),
+              color: resultBg,
               child: Text(
                 block.toolResult!,
                 style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: theme.fontSizeSm,
                   height: 1.5,
-                  color: theme.textToolResult,
+                  color: resultColor,
                 ),
               ),
             ),

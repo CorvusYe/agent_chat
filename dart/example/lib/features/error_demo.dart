@@ -81,8 +81,13 @@ class _ErrorDemoState extends State<ErrorDemo> {
       }, autoApproved: true);
       await Future.delayed(const Duration(milliseconds: 400));
       if (_cancelled) return;
-      // 工具执行失败 → 报告错误
-      yield ExchangeError(id, '分析失败: 目标仓库不存在或权限不足\n请检查仓库路径是否正确。');
+      // 工具执行失败 → isError=true 自动触发 Exchange 失败态
+      yield ToolCallCompleted(
+        id,
+        'tool',
+        '✗ 分析失败: 目标仓库不存在或权限不足\n请检查仓库路径是否正确。',
+        isError: true,
+      );
       return;
     }
 

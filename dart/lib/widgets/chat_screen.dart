@@ -339,7 +339,13 @@ class _ChatScreenState extends State<ChatScreen>
         final errKey = _errorCollapseKey(exchange);
         final errSlivers = <Widget>[
           SliverToBoxAdapter(
-            child: _buildErrorHeader(context, theme, errKey, errCollapsed),
+            child: _buildErrorHeader(
+              context,
+              theme,
+              errKey,
+              errCollapsed,
+              exchange.errorMessage!,
+            ),
           ),
         ];
         if (!errCollapsed) {
@@ -414,6 +420,7 @@ class _ChatScreenState extends State<ChatScreen>
     ChatTheme theme,
     String collapseKey,
     bool collapsed,
+    String errorMessage,
   ) {
     return SizedBox(
       height: 28.0,
@@ -449,6 +456,7 @@ class _ChatScreenState extends State<ChatScreen>
                 theme: theme,
                 showChevron: true,
                 expanded: !collapsed,
+                subtitle: collapsed ? errorMessage : null,
               ),
             ),
           ],
