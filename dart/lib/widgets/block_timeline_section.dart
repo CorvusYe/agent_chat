@@ -353,33 +353,30 @@ class BlockHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    return SizedBox(
-      height: theme.timelineHeaderHeight,
-      child: Row(
-        children: [
-          SizedBox(
-            width: theme.timelineGutter,
-            child: Center(child: dot),
-          ),
-          Expanded(
-            child: InkWell(
-              onTap: onTap,
-              child: buildBlockHeader(
-                context: context,
-                icon: icon,
-                label: label,
-                color: color,
-                theme: theme,
-                showChevron: showChevron,
-                expanded: expanded,
-                subtitle: subtitle,
-                startTime: startTime,
-                elapsed: elapsed,
-              ),
+    return Row(
+      children: [
+        SizedBox(
+          width: theme.timelineGutter,
+          child: Center(child: dot),
+        ),
+        Expanded(
+          child: InkWell(
+            onTap: onTap,
+            child: buildBlockHeader(
+              context: context,
+              icon: icon,
+              label: label,
+              color: color,
+              theme: theme,
+              showChevron: showChevron,
+              expanded: expanded,
+              subtitle: subtitle,
+              startTime: startTime,
+              elapsed: elapsed,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
