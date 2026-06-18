@@ -172,80 +172,53 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   }
 
   // ═══════════════════════════════════════════════════════
-  //  Block header — Row(gutter + header)
+  //  Block header — BlockHeader widget
   // ═══════════════════════════════════════════════════════
 
   Widget _buildInlineHeader(ChatBlock block, ChatTheme theme) {
     final collapseKey = '${widget.exchange.id}_${block.id}';
     final collapsed = _isCollapsed(block);
     final sub = collapsed ? _firstParagraph(block) : null;
+    final dotColor = dotColorFor(block, theme);
 
     return BlockAnimController(
       block: block,
-      builder: (context, anim) {
-        final dotColor = dotColorFor(block, theme);
-
-        return SizedBox(
-          height: 28.0,
-          child: Row(
-            children: [
-              // 时间轴列：gutter + 圆点居中
-              SizedBox(
-                width: theme.timelineGutter,
-                child: Center(
-                  child: anim.isActive
-                      ? SizedBox(
-                          width: theme.timelineDotSize,
-                          height: theme.timelineDotSize,
-                          child: CustomPaint(
-                            painter: RunningDotPainter(
-                              color: dotColor,
-                              rotation: anim.rotationValue,
-                            ),
-                          ),
-                        )
-                      : Container(
-                          width: theme.timelineDotSize,
-                          height: theme.timelineDotSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: theme.bgPrimary,
-                            border: Border.all(color: dotColor, width: 2),
-                          ),
-                        ),
-                ),
-              ),
-              // 内容列
-              Expanded(
-                child: InkWell(
-                  onTap: () => _onToggleCollapsed(collapseKey, collapsed),
-                  child: buildBlockHeader(
-                    context: context,
-                    icon: iconForBlock(block),
-                    label: labelForBlock(block),
-                    color: anim.applyBreathing(headerColorFor(block, theme)),
-                    theme: theme,
-                    showChevron: true,
-                    expanded: !collapsed,
-                    subtitle: sub,
-                    startTime: block.startTime,
-                    elapsed: block.elapsed,
+      builder: (context, anim) => BlockHeader(
+        dot: anim.isActive
+            ? SizedBox(
+                width: theme.timelineDotSize,
+                height: theme.timelineDotSize,
+                child: CustomPaint(
+                  painter: RunningDotPainter(
+                    color: dotColor,
+                    rotation: anim.rotationValue,
                   ),
                 ),
+              )
+            : Container(
+                width: theme.timelineDotSize,
+                height: theme.timelineDotSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.bgPrimary,
+                  border: Border.all(color: dotColor, width: 2),
+                ),
               ),
-            ],
-          ),
-        );
-      },
+        icon: iconForBlock(block),
+        label: labelForBlock(block),
+        color: anim.applyBreathing(headerColorFor(block, theme)),
+        onTap: () => _onToggleCollapsed(collapseKey, collapsed),
+        expanded: !collapsed,
+        subtitle: sub,
+        startTime: block.startTime,
+        elapsed: block.elapsed,
+      ),
     );
   }
 
   // ═══════════════════════════════════════════════════════
-  //  Block content — Stack(竖线 + content)
+  //  Block content — BlockContent widget
   // ═══════════════════════════════════════════════════════
-  //
-  // 用 Stack 而非 Row：竖线需要拉伸到与内容等高的完整高度，
-  // 而 Row 在 sliver 中无法约束纵轴高度（CrossAxisAlignment.stretch 会报无限高）。
 
   Widget _buildBlockContent(
     ChatBlock block,
@@ -254,54 +227,25 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   ) {
     return BlockAnimController(
       block: block,
-      builder: (context, anim) {
-        final lineColor = anim.applyBreathing(dotColorFor(block, theme));
-
-        return Padding(
-          padding: theme.blockPadding,
-          child: Stack(
-            children: [
-              // 竖线 — 在 gutter 区域内水平居中
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: SizedBox(
-                  width: theme.timelineGutter,
-                  child: Center(
-                    child: Container(
-                      width: theme.timelineLineWidth,
-                      color: lineColor,
-                    ),
-                  ),
-                ),
-              ),
-              // 内容 — 从 gutter 右侧开始
-              Padding(
-                padding: EdgeInsets.only(left: theme.timelineGutter),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: viewportHeight * 0.618,
-                  ),
-                  child: SingleChildScrollView(
-                    child: BlockRegistry.build(
-                      context,
-                      block,
-                      widget.bus,
-                      widget.exchange,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+      builder: (context, anim) => BlockContent(
+        lineColor: anim.applyBreathing(dotColorFor(block, theme)),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: viewportHeight * 0.618),
+          child: SingleChildScrollView(
+            child: BlockRegistry.build(
+              context,
+              block,
+              widget.bus,
+              widget.exchange,
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   // ═══════════════════════════════════════════════════════
-  //  Error header — Row(gutter + header)
+  //  Error header — BlockHeader widget
   // ═══════════════════════════════════════════════════════
 
   Widget _buildErrorHeader(
@@ -309,38 +253,108 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
     bool collapsed,
     ChatTheme theme,
   ) {
+    return BlockHeader(
+      dot: Container(
+        width: theme.timelineDotSize,
+        height: theme.timelineDotSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: theme.bgPrimary,
+          border: Border.all(color: theme.error, width: 2),
+        ),
+      ),
+      icon: Icons.error_outline,
+      label: '错误',
+      color: theme.error,
+      onTap: () => _onToggleCollapsed(collapseKey, collapsed),
+      expanded: !collapsed,
+      subtitle: collapsed ? widget.exchange.errorMessage : null,
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Error content — BlockContent widget
+  // ═══════════════════════════════════════════════════════
+
+  Widget _buildErrorContent(ChatTheme theme) {
+    final isLight = theme.bgPrimary.computeLuminance() > 0.5;
+    final verticalAlpha = isLight ? 0.25 : 0.2;
+
+    return BlockContent(
+      lineColor: theme.error.withValues(alpha: verticalAlpha),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, bottom: 4),
+        child: Text(
+          widget.exchange.errorMessage!,
+          style: TextStyle(
+            color: theme.textSecondary,
+            fontSize: theme.fontSizeSm,
+            height: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  BlockHeader — 统一的时间轴头部 Row
+// ═══════════════════════════════════════════════════════
+
+/// 时间轴 block 头部。
+///
+/// 布局：Row(gutter + dot) + Expanded(header)
+class BlockHeader extends StatelessWidget {
+  final Widget dot;
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool showChevron;
+  final bool expanded;
+  final String? subtitle;
+  final DateTime? startTime;
+  final Duration? elapsed;
+
+  const BlockHeader({
+    super.key,
+    required this.dot,
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.onTap,
+    this.showChevron = true,
+    this.expanded = false,
+    this.subtitle,
+    this.startTime,
+    this.elapsed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ChatTheme.of(context);
     return SizedBox(
       height: 28.0,
       child: Row(
         children: [
-          // 时间轴列：gutter + 圆点居中
           SizedBox(
             width: theme.timelineGutter,
-            child: Center(
-              child: Container(
-                width: theme.timelineDotSize,
-                height: theme.timelineDotSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.bgPrimary,
-                  border: Border.all(color: theme.error, width: 2),
-                ),
-              ),
-            ),
+            child: Center(child: dot),
           ),
-          // 内容列
           Expanded(
             child: InkWell(
-              onTap: () => _onToggleCollapsed(collapseKey, collapsed),
+              onTap: onTap,
               child: buildBlockHeader(
                 context: context,
-                icon: Icons.error_outline,
-                label: '错误',
-                color: theme.error,
+                icon: icon,
+                label: label,
+                color: color,
                 theme: theme,
-                showChevron: true,
-                expanded: !collapsed,
-                subtitle: collapsed ? widget.exchange.errorMessage : null,
+                showChevron: showChevron,
+                expanded: expanded,
+                subtitle: subtitle,
+                startTime: startTime,
+                elapsed: elapsed,
               ),
             ),
           ),
@@ -348,20 +362,29 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       ),
     );
   }
+}
 
-  // ═══════════════════════════════════════════════════════
-  //  Error content — Stack(竖线 + content)
-  // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  BlockContent — 统一的时间轴内容 Stack
+// ═══════════════════════════════════════════════════════
 
-  Widget _buildErrorContent(ChatTheme theme) {
-    final isLight = theme.bgPrimary.computeLuminance() > 0.5;
-    final verticalAlpha = isLight ? 0.25 : 0.2;
+/// 时间轴 block 内容区。
+///
+/// 布局：Stack(竖线居中于 gutter + content)
+/// 用 Stack 而非 Row：竖线通过 Positioned(top:0, bottom:0) 拉伸到与内容等高。
+class BlockContent extends StatelessWidget {
+  final Color lineColor;
+  final Widget child;
 
+  const BlockContent({super.key, required this.lineColor, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ChatTheme.of(context);
     return Padding(
       padding: theme.blockPadding,
       child: Stack(
         children: [
-          // 竖线 — 在 gutter 区域内水平居中
           Positioned(
             left: 0,
             top: 0,
@@ -371,25 +394,14 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
               child: Center(
                 child: Container(
                   width: theme.timelineLineWidth,
-                  color: theme.error.withValues(alpha: verticalAlpha),
+                  color: lineColor,
                 ),
               ),
             ),
           ),
-          // 内容 — 从 gutter 右侧开始
           Padding(
-            padding: EdgeInsets.only(
-              left: theme.timelineGutter + 10,
-              bottom: 4,
-            ),
-            child: Text(
-              widget.exchange.errorMessage!,
-              style: TextStyle(
-                color: theme.textSecondary,
-                fontSize: theme.fontSizeSm,
-                height: 1.5,
-              ),
-            ),
+            padding: EdgeInsets.only(left: theme.timelineGutter),
+            child: child,
           ),
         ],
       ),
