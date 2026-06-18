@@ -536,18 +536,29 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
             alpha: 0.5 + 0.5 * _breathingCtrl!.value,
           )
         : widget.headerColor;
+    // 根据主题值计算时间轴圆点中心位置，确保竖线经过圆心
+    final headerContentH = max(theme.iconSizeSm, theme.fontSizeSm * 1.2);
+    final headerH =
+        theme.blockHeaderPadding.top +
+        headerContentH +
+        theme.blockHeaderPadding.bottom;
+    final dotCenterY = headerH / 2;
+    // 时间轴水平位置：竖线与圆点共用圆心
+    const dotSize = 12.0;
+    const lineW = 2.0;
+    const centerX = -11.0; // 圆心在 Stack 中的 x 坐标
 
     return Padding(
       padding: EdgeInsets.only(left: theme.spacingLg),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // 纵向线段 — 使用与圆点一致的状态色
+          // 纵向线段 — 竖线中心经过圆心
           Positioned(
-            left: -12,
-            top: 13,
+            left: centerX - lineW / 2,
+            top: dotCenterY,
             bottom: widget.isLastBlock ? 8 : 0,
-            child: Container(width: 2, color: lineColor),
+            child: Container(width: lineW, color: lineColor),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -558,14 +569,14 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
                 clipBehavior: Clip.none,
                 children: [
                   Positioned(
-                    left: -17,
+                    left: centerX - dotSize / 2,
                     top: 0,
                     bottom: 0,
                     child: Center(
                       child: _isRunning && _rotationCtrl != null
                           ? SizedBox(
-                              width: 12,
-                              height: 12,
+                              width: dotSize,
+                              height: dotSize,
                               child: CustomPaint(
                                 painter: RunningDotPainter(
                                   color: widget.showDotColor,
@@ -574,8 +585,8 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
                               ),
                             )
                           : Container(
-                              width: 12,
-                              height: 12,
+                              width: dotSize,
+                              height: dotSize,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: theme.bgPrimary,
