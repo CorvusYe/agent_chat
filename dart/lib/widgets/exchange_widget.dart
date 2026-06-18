@@ -206,7 +206,7 @@ Widget buildBlockHeader({
   return Container(
     color: theme.bgPrimary,
     child: Padding(
-      padding: EdgeInsets.fromLTRB(10, 6, 0, 4),
+      padding: theme.blockHeaderPadding,
       child: Row(
         children: [
           Icon(icon, size: theme.iconSizeSm, color: color),
@@ -882,7 +882,7 @@ class _ThinkingPlaceholderState extends State<_ThinkingPlaceholder>
           ),
           // 心跳脉冲文字
           Padding(
-            padding: EdgeInsets.fromLTRB(10, 6, 0, 4),
+            padding: theme.blockHeaderPadding,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

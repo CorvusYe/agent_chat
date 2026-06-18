@@ -338,7 +338,7 @@ class _ConfirmGate extends StatelessWidget {
     final hasArgs = block.toolArgs != null && block.toolArgs!.isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      padding: theme.confirmPadding,
       decoration: BoxDecoration(
         color: theme.bgCard,
         border: Border.all(color: theme.border),
@@ -351,12 +351,14 @@ class _ConfirmGate extends StatelessWidget {
           // 头部：工具名 + 描述
           if (block.toolName != null || block.description != null)
             Padding(
-              padding: EdgeInsets.only(bottom: hasArgs ? 4 : 6),
+              padding: EdgeInsets.only(
+                bottom: hasArgs ? theme.spacingXs : theme.spacingXs + 2,
+              ),
               child: Row(
                 children: [
                   if (block.toolName != null)
                     Padding(
-                      padding: const EdgeInsets.only(right: 6),
+                      padding: EdgeInsets.only(right: theme.spacingXs + 2),
                       child: Text(
                         block.toolName!,
                         style: TextStyle(
@@ -385,10 +387,10 @@ class _ConfirmGate extends StatelessWidget {
           // 工具参数（命令/详情）— 单独一行，突出展示
           if (hasArgs)
             Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: EdgeInsets.only(bottom: theme.spacingXs + 2),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+                padding: theme.codeBlockPadding,
                 decoration: BoxDecoration(
                   color: theme.bgCommand,
                   borderRadius: BorderRadius.circular(theme.radiusSm),
@@ -470,7 +472,7 @@ class _CompactBtn extends StatelessWidget {
                 ? BorderSide.none
                 : BorderSide(color: color.withAlpha(100)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: theme.buttonPadding,
           textStyle: TextStyle(
             fontSize: theme.fontSizeSm,
             fontWeight: FontWeight.w600,

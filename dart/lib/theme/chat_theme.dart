@@ -92,6 +92,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
   final double spacingXl;
   final double spacingWindow;
   final EdgeInsets blockPadding;
+  final EdgeInsets blockHeaderPadding;
+  final EdgeInsets confirmPadding;
+  final EdgeInsets codeBlockPadding;
+  final EdgeInsets buttonPadding;
 
   // ═══════════════════════════════════════
   //  圆角
@@ -177,6 +181,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     this.spacingXl = 24,
     this.spacingWindow = 12,
     this.blockPadding = const EdgeInsets.fromLTRB(0, 4, 0, 4),
+    this.blockHeaderPadding = const EdgeInsets.fromLTRB(10, 6, 0, 4),
+    this.confirmPadding = const EdgeInsets.fromLTRB(10, 8, 10, 8),
+    this.codeBlockPadding = const EdgeInsets.all(8),
+    this.buttonPadding = const EdgeInsets.symmetric(horizontal: 12),
     // 圆角
     this.radiusSm = 2,
     this.radiusMd = 3,
@@ -304,6 +312,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
     double? spacingXl,
     double? spacingWindow,
     EdgeInsets? blockPadding,
+    EdgeInsets? blockHeaderPadding,
+    EdgeInsets? confirmPadding,
+    EdgeInsets? codeBlockPadding,
+    EdgeInsets? buttonPadding,
     double? radiusSm,
     double? radiusMd,
     double? radiusLg,
@@ -374,6 +386,10 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
       spacingXl: spacingXl ?? this.spacingXl,
       spacingWindow: spacingWindow ?? this.spacingWindow,
       blockPadding: blockPadding ?? this.blockPadding,
+      blockHeaderPadding: blockHeaderPadding ?? this.blockHeaderPadding,
+      confirmPadding: confirmPadding ?? this.confirmPadding,
+      codeBlockPadding: codeBlockPadding ?? this.codeBlockPadding,
+      buttonPadding: buttonPadding ?? this.buttonPadding,
       radiusSm: radiusSm ?? this.radiusSm,
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
@@ -452,6 +468,18 @@ class ChatTheme extends ThemeExtension<ChatTheme> {
           lerpDouble(spacingWindow, other.spacingWindow, t) ?? spacingWindow,
       blockPadding:
           EdgeInsets.lerp(blockPadding, other.blockPadding, t) ?? blockPadding,
+      blockHeaderPadding:
+          EdgeInsets.lerp(blockHeaderPadding, other.blockHeaderPadding, t) ??
+          blockHeaderPadding,
+      confirmPadding:
+          EdgeInsets.lerp(confirmPadding, other.confirmPadding, t) ??
+          confirmPadding,
+      codeBlockPadding:
+          EdgeInsets.lerp(codeBlockPadding, other.codeBlockPadding, t) ??
+          codeBlockPadding,
+      buttonPadding:
+          EdgeInsets.lerp(buttonPadding, other.buttonPadding, t) ??
+          buttonPadding,
       radiusSm: lerpDouble(radiusSm, other.radiusSm, t) ?? radiusSm,
       radiusMd: lerpDouble(radiusMd, other.radiusMd, t) ?? radiusMd,
       radiusLg: lerpDouble(radiusLg, other.radiusLg, t) ?? radiusLg,
