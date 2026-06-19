@@ -245,6 +245,8 @@ class _HistoryBus extends ChangeNotifier implements ChatBus {
   @override
   void addTokens(int c) => _delegate.addTokens(c);
   @override
+  ValueNotifier<int> get attentionSignal => _delegate.attentionSignal;
+  @override
   void acceptEvents(String e, Stream<ExchangeEvent> s) =>
       _delegate.acceptEvents(e, s);
   @override

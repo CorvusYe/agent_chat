@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import '../bus/chat_bus.dart';
 import '../models/exchange.dart';
+import '../models/chat_block.dart';
 import '../theme/chat_theme.dart';
 import 'exchange_widget.dart';
 import 'block_timeline_section.dart';
@@ -80,8 +81,9 @@ class _ChatScreenState extends State<ChatScreen>
     });
     bus.addListener(_onBusChanged);
     bus.init();
+    _scrollCtrl.addListener(_onUserScroll);
     _statsTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      if (bus.isStreaming && mounted) {
+      if (bus.isStreaming && mounted && !_needsUserAction) {
         setState(() {});
         _scrollToBottomIfNearEnd();
       }
@@ -95,6 +97,7 @@ class _ChatScreenState extends State<ChatScreen>
     bus.removeListener(_onBusChanged);
     bus.dispose();
     _textCtrl.dispose();
+    _scrollCtrl.removeListener(_onUserScroll);
     _scrollCtrl.dispose();
     _statsTimer?.cancel();
     super.dispose();
@@ -112,7 +115,26 @@ class _ChatScreenState extends State<ChatScreen>
     _lastExchangeCount = exCount;
     _lastBlockCount = blockCount;
     setState(() {});
-    if (shouldScroll) _scrollToBottom();
+    // 新增的是确认门等需要用户交互的 block 时，不自动滚到底部
+    if (shouldScroll && !_needsUserAction) _scrollToBottom();
+  }
+
+  /// 是否有任何 block 需要用户交互（确认门 / 错误），
+  /// 此类场景不应自动滚动到底部，否则用户看不到操作按钮。
+  /// 必须扫描所有 exchange，因为未确认的确认门可能在早期 exchange 中。
+  bool get _needsUserAction {
+    for (final ex in bus.exchanges) {
+      // 失败的 exchange
+      if (ex.status == ExchangeStatus.failed) return true;
+      for (final group in ex.groups) {
+        for (final block in group.blocks) {
+          if (block.requiresConfirm && block.status == BlockStatus.pending) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   void _scrollToBottom() {
@@ -128,10 +150,19 @@ class _ChatScreenState extends State<ChatScreen>
 
   void _scrollToBottomIfNearEnd() {
     if (!_scrollCtrl.hasClients) return;
+    if (_needsUserAction) return; // 有确认门等交互时，不干扰用户位置
     final maxScroll = _scrollCtrl.position.maxScrollExtent;
     final currentScroll = _scrollCtrl.position.pixels;
     if (maxScroll - currentScroll > 150) return; // not near end, skip
     _scrollCtrl.jumpTo(maxScroll);
+  }
+
+  /// 用户主动滚动 → 有挂起的确认门时发出注意信号
+  void _onUserScroll() {
+    if (!_scrollCtrl.hasClients) return;
+    if (_needsUserAction) {
+      bus.attentionSignal.value++;
+    }
   }
 
   void _handleSend() {

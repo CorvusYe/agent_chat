@@ -26,6 +26,9 @@ abstract class ChatBus implements Listenable {
   // ── Token API（example 层调用） ──
   void addTokens(int count);
 
+  // ── UI 注意信号：确认门待处理时用户滚动触发，块可据此闪烁 ──
+  ValueNotifier<int> get attentionSignal;
+
   // ── AI 事件入口 ──
   void acceptEvents(String exchangeId, Stream<ExchangeEvent> events);
 

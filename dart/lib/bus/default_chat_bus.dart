@@ -17,6 +17,10 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
   String? _globalAlwaysAllow;
   final Map<String, Completer<void>> _pendingConfirms = {};
   final Set<String> _activeExchanges = {};
+  late final ValueNotifier<int> _attentionSignal = ValueNotifier<int>(0);
+
+  @override
+  ValueNotifier<int> get attentionSignal => _attentionSignal;
   DateTime? _startTime;
   Duration? _lastElapsed;
   final Map<String, DateTime> _blockStartTimes = {};

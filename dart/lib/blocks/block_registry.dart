@@ -330,7 +330,7 @@ class _ContentBlock extends StatelessWidget {
 //  Confirm Gate
 // ═══════════════════════════════════════════════════════
 
-class _ConfirmGate extends StatelessWidget {
+class _ConfirmGate extends StatefulWidget {
   final ChatBlock block;
   final ChatBus bus;
   final String exchangeId;
@@ -341,116 +341,157 @@ class _ConfirmGate extends StatelessWidget {
   });
 
   @override
+  State<_ConfirmGate> createState() => _ConfirmGateState();
+}
+
+class _ConfirmGateState extends State<_ConfirmGate>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _flashCtrl;
+  late final Animation<double> _flashAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _flashCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _flashAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _flashCtrl, curve: Curves.easeOut),
+    );
+    widget.bus.attentionSignal.addListener(_onAttention);
+  }
+
+  @override
+  void dispose() {
+    widget.bus.attentionSignal.removeListener(_onAttention);
+    _flashCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onAttention() {
+    if (!mounted) return;
+    _flashCtrl.forward(from: 0);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    final hasArgs = block.toolArgs != null && block.toolArgs!.isNotEmpty;
+    final hasArgs = widget.block.toolArgs != null && widget.block.toolArgs!.isNotEmpty;
 
-    return Container(
-      padding: theme.confirmPadding,
-      decoration: BoxDecoration(
-        color: theme.bgCard,
-        border: Border.all(color: theme.border),
-        borderRadius: BorderRadius.circular(theme.radiusMd),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 头部：工具名 + 描述
-          if (block.toolName != null || block.description != null)
-            Padding(
-              padding: EdgeInsets.only(
-                bottom: hasArgs ? theme.spacingXs : theme.spacingXs + 2,
-              ),
-              child: Row(
-                children: [
-                  if (block.toolName != null)
-                    Flexible(
-                      child: Padding(
-                        padding: EdgeInsets.only(right: theme.spacingXs + 2),
-                        child: Text(
-                          block.toolName!,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.w600,
-                            fontSize: theme.fontSizeSm,
-                            color: theme.textToolHeader,
+    return AnimatedBuilder(
+      animation: _flashAnim,
+      builder: (context, child) {
+        final flashColor = theme.accent.withAlpha((_flashAnim.value * 30).round());
+        final bgColor = Color.lerp(theme.bgCard, flashColor, _flashAnim.value)!;
+        return Container(
+          padding: theme.confirmPadding,
+          decoration: BoxDecoration(
+            color: bgColor,
+            border: Border.all(color: theme.border),
+            borderRadius: BorderRadius.circular(theme.radiusMd),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 头部：工具名 + 描述
+              if (widget.block.toolName != null || widget.block.description != null)
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: hasArgs ? theme.spacingXs : theme.spacingXs + 2,
+                  ),
+                  child: Row(
+                    children: [
+                      if (widget.block.toolName != null)
+                        Flexible(
+                          child: Padding(
+                            padding: EdgeInsets.only(right: theme.spacingXs + 2),
+                            child: Text(
+                              widget.block.toolName!,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.w600,
+                                fontSize: theme.fontSizeSm,
+                                color: theme.textToolHeader,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  if (block.description != null)
-                    Expanded(
-                      child: Text(
-                        block.description!,
-                        style: TextStyle(
-                          color: theme.textContent,
-                          fontSize: theme.fontSizeSm,
-                          height: 1.4,
+                      if (widget.block.description != null)
+                        Expanded(
+                          child: Text(
+                            widget.block.description!,
+                            style: TextStyle(
+                              color: theme.textContent,
+                              fontSize: theme.fontSizeSm,
+                              height: 1.4,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          // 工具参数（命令/详情）— 单独一行，突出展示
-          if (hasArgs)
-            Padding(
-              padding: EdgeInsets.only(bottom: theme.spacingXs + 2),
-              child: Container(
-                width: double.infinity,
-                padding: theme.codeBlockPadding,
-                decoration: BoxDecoration(
-                  color: theme.bgCommand,
-                  borderRadius: BorderRadius.circular(theme.radiusSm),
-                ),
-                child: Text(
-                  block.toolArgs!.toString(),
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: theme.fontSizeSm,
-                    height: 1.4,
-                    color: theme.textContent,
+                    ],
                   ),
                 ),
-              ),
-            ),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              _CompactBtn(
-                label: '允许',
-                filled: true,
-                color: theme.accent,
-                onPressed: () =>
-                    bus.confirmTool(exchangeId, block.toolName ?? '', false),
-              ),
-              if (block.canAlwaysAllow)
-                _CompactBtn(
-                  label: '始终允许',
-                  filled: false,
-                  color: theme.accent,
-                  onPressed: () =>
-                      bus.confirmTool(exchangeId, block.toolName ?? '', true),
+              // 工具参数（命令/详情）— 单独一行，突出展示
+              if (hasArgs)
+                Padding(
+                  padding: EdgeInsets.only(bottom: theme.spacingXs + 2),
+                  child: Container(
+                    width: double.infinity,
+                    padding: theme.codeBlockPadding,
+                    decoration: BoxDecoration(
+                      color: theme.bgCommand,
+                      borderRadius: BorderRadius.circular(theme.radiusSm),
+                    ),
+                    child: Text(
+                      widget.block.toolArgs!.toString(),
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: theme.fontSizeSm,
+                        height: 1.4,
+                        color: theme.textContent,
+                      ),
+                    ),
+                  ),
                 ),
-              _CompactBtn(
-                label: '取消',
-                filled: false,
-                color: theme.textSecondary,
-                onPressed: () =>
-                    bus.cancelTool(exchangeId, block.toolName ?? ''),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  _CompactBtn(
+                    label: '允许',
+                    filled: true,
+                    color: theme.accent,
+                    onPressed: () =>
+                        widget.bus.confirmTool(widget.exchangeId, widget.block.toolName ?? '', false),
+                  ),
+                  if (widget.block.canAlwaysAllow)
+                    _CompactBtn(
+                      label: '始终允许',
+                      filled: false,
+                      color: theme.accent,
+                      onPressed: () =>
+                          widget.bus.confirmTool(widget.exchangeId, widget.block.toolName ?? '', true),
+                    ),
+                  _CompactBtn(
+                    label: '取消',
+                    filled: false,
+                    color: theme.textSecondary,
+                    onPressed: () =>
+                        widget.bus.cancelTool(widget.exchangeId, widget.block.toolName ?? ''),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-    );
+        );
+    },
+  );
   }
 }
 

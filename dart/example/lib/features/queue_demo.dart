@@ -152,6 +152,8 @@ class _QueuedChatBus with ChangeNotifier implements ChatBus {
   @override
   void addTokens(int c) => _inner.addTokens(c);
   @override
+  ValueNotifier<int> get attentionSignal => _inner.attentionSignal;
+  @override
   void acceptEvents(e, s) => _inner.acceptEvents(e, s);
   @override
   void init() => _inner.init();
