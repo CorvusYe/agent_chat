@@ -152,7 +152,12 @@ class _ChatScreenState extends State<ChatScreen>
               child: Column(
                 children: [
                   Expanded(child: _buildMessages(chatTheme)),
-                  StatsBar(totalTokens: bus.totalTokens),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: chatTheme.spacingXs,
+                    ),
+                    child: StatsBar(totalTokens: bus.totalTokens),
+                  ),
                   _buildInput(chatTheme),
                 ],
               ),
@@ -326,55 +331,45 @@ class _ChatScreenState extends State<ChatScreen>
       ),
     );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.bgSurface,
-        border: Border(top: BorderSide(color: theme.borderLight)),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowDark,
-            offset: const Offset(0, -2),
-            blurRadius: 6,
-            spreadRadius: -1,
-          ),
-        ],
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: inputField),
+        SizedBox(width: theme.inputButtonGap),
+        // 发送按钮 + 队列角标（局部 Stack，不污染外层布局）
+        SizedBox(
+          width: 28,
+          height: 28,
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Expanded(child: inputField),
-              SizedBox(width: theme.inputButtonGap),
               sendButton,
+              if (bus.queueCount > 0)
+                Positioned(
+                  right: -6,
+                  top: -6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    decoration: BoxDecoration(
+                      color: theme.error,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${bus.queueCount}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: theme.fontSizeSm - 2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
             ],
           ),
-          // Badge — outside Row to avoid layout interference
-          if (bus.queueCount > 0)
-            Positioned(
-              right: -6,
-              top: -6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                decoration: BoxDecoration(
-                  color: theme.error,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${bus.queueCount}',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: theme.fontSizeSm - 2,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
