@@ -186,6 +186,7 @@ class _ThinkingBlock extends StatelessWidget {
       width: double.infinity,
       child: Text(
         block.content ?? '',
+        softWrap: true,
         style: TextStyle(
           color: isError ? theme.error : theme.textSecondary,
           fontSize: theme.fontSizeMd,
@@ -241,27 +242,33 @@ class _ToolBlock extends StatelessWidget {
             color: headerBg,
             child: Row(
               children: [
-                Text(
-                  block.toolName ?? '',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w500,
-                    fontSize: theme.fontSizeMd,
-                    color: headerTextColor,
+                Flexible(
+                  child: Text(
+                    block.toolName ?? '',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w500,
+                      fontSize: theme.fontSizeMd,
+                      color: headerTextColor,
+                    ),
                   ),
                 ),
                 if (block.toolArgs != null && block.toolArgs!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Text(
-                      block.toolArgs!.toString(),
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: theme.fontSizeSm,
-                        color: isError ? theme.error : theme.textTertiary,
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Text(
+                        block.toolArgs!.toString(),
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: theme.fontSizeSm,
+                          color: isError ? theme.error : theme.textTertiary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                   ),
               ],
@@ -271,9 +278,11 @@ class _ToolBlock extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(theme.spacingMd),
-              color: resultBg,
+              decoration: BoxDecoration(color: resultBg),
+              clipBehavior: Clip.hardEdge,
               child: Text(
                 block.toolResult!,
+                softWrap: true,
                 style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: theme.fontSizeSm,
@@ -306,6 +315,7 @@ class _ContentBlock extends StatelessWidget {
       width: double.infinity,
       child: Text(
         content,
+        softWrap: true,
         style: TextStyle(
           color: isError ? theme.error : theme.textContent,
           fontSize: theme.fontSizeLg,
@@ -355,15 +365,19 @@ class _ConfirmGate extends StatelessWidget {
               child: Row(
                 children: [
                   if (block.toolName != null)
-                    Padding(
-                      padding: EdgeInsets.only(right: theme.spacingXs + 2),
-                      child: Text(
-                        block.toolName!,
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.w600,
-                          fontSize: theme.fontSizeSm,
-                          color: theme.textToolHeader,
+                    Flexible(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: theme.spacingXs + 2),
+                        child: Text(
+                          block.toolName!,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.w600,
+                            fontSize: theme.fontSizeSm,
+                            color: theme.textToolHeader,
+                          ),
                         ),
                       ),
                     ),
@@ -395,6 +409,8 @@ class _ConfirmGate extends StatelessWidget {
                 ),
                 child: Text(
                   block.toolArgs!.toString(),
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: theme.fontSizeSm,

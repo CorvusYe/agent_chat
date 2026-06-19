@@ -211,23 +211,31 @@ Widget buildBlockHeader({
         children: [
           Icon(icon, size: theme.iconSizeSm, color: color),
           SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: theme.fontSizeSm,
-              fontWeight: FontWeight.w500,
-              color: color,
-              letterSpacing: 0.24,
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: theme.fontSizeSm,
+                fontWeight: FontWeight.w500,
+                color: color,
+                letterSpacing: 0.24,
+              ),
             ),
           ),
           if (elapsedText != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Text(
-                elapsedText,
-                style: TextStyle(
-                  fontSize: theme.fontSizeSm - 1,
-                  color: theme.textTertiary,
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  elapsedText,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: TextStyle(
+                    fontSize: theme.fontSizeSm - 1,
+                    color: theme.textTertiary,
+                  ),
                 ),
               ),
             ),

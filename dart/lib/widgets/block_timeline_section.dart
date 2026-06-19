@@ -285,6 +285,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
           padding: const EdgeInsets.only(left: 10, bottom: 4),
           child: Text(
             widget.exchange.errorMessage!,
+            softWrap: true,
             style: TextStyle(
               color: theme.textSecondary,
               fontSize: theme.fontSizeSm,
