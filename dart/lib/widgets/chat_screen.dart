@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import '../bus/chat_bus.dart';
@@ -7,6 +8,19 @@ import '../theme/chat_theme.dart';
 import 'exchange_widget.dart';
 import 'block_timeline_section.dart';
 import 'stats_bar.dart';
+
+/// 桌面端鼠标拖拽滚动的 ScrollBehavior。
+/// Flutter 默认 dragDevices 只包含 touch/stylus，不含 mouse，
+/// 导致 Windows 上鼠标点击拖拽无响应。
+class _DesktopDragScrollBehavior extends ScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.unknown,
+  };
+}
 
 /// ChatScreen — 聊天界面主 Widget。
 ///
@@ -212,9 +226,12 @@ class _ChatScreenState extends State<ChatScreen>
     final viewportHeight = MediaQuery.of(context).size.height;
 
     return ScrollConfiguration(
-      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      behavior: _DesktopDragScrollBehavior().copyWith(scrollbars: false),
       child: CustomScrollView(
         controller: _scrollCtrl,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         clipBehavior: Clip.none,
         slivers: _buildExchangeSlivers(theme, viewportWidth, viewportHeight),
       ),
