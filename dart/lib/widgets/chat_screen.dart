@@ -82,10 +82,10 @@ class _ChatScreenState extends State<ChatScreen>
     bus.addListener(_onBusChanged);
     bus.init();
     _scrollCtrl.addListener(_onUserScroll);
+    // 仅用于实时刷新 UI（如块动画），滚动交由 _onBusChanged 事件驱动
     _statsTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      if (bus.isStreaming && mounted && !_needsUserAction) {
+      if (bus.isStreaming && mounted) {
         setState(() {});
-        _scrollToBottomIfNearEnd();
       }
     });
   }
@@ -105,18 +105,23 @@ class _ChatScreenState extends State<ChatScreen>
 
   void _onBusChanged() {
     if (!mounted) return;
+    final oldExCount = _lastExchangeCount;
+    final oldBlockCount = _lastBlockCount;
     final exCount = bus.exchanges.length;
     final blockCount = bus.exchanges.fold<int>(
       0,
       (sum, ex) => sum + ex.groups.fold<int>(0, (s, g) => s + g.blocks.length),
     );
-    final shouldScroll =
-        exCount > _lastExchangeCount || blockCount > _lastBlockCount;
     _lastExchangeCount = exCount;
     _lastBlockCount = blockCount;
     setState(() {});
-    // 新增的是确认门等需要用户交互的 block 时，不自动滚到底部
-    if (shouldScroll && !_needsUserAction) _scrollToBottom();
+    if (exCount > oldExCount || blockCount > oldBlockCount) {
+      // 新 exchange / block 添加 → 平滑滚到底
+      _scrollToBottom();
+    } else if (_scrollCtrl.hasClients) {
+      // 内容增量（delta / 完成）→ 仅在用户靠近底部时跟随
+      _scrollToBottomIfNearEnd();
+    }
   }
 
   /// 是否有任何 block 需要用户交互（确认门 / 错误），
@@ -150,7 +155,6 @@ class _ChatScreenState extends State<ChatScreen>
 
   void _scrollToBottomIfNearEnd() {
     if (!_scrollCtrl.hasClients) return;
-    if (_needsUserAction) return; // 有确认门等交互时，不干扰用户位置
     final maxScroll = _scrollCtrl.position.maxScrollExtent;
     final currentScroll = _scrollCtrl.position.pixels;
     if (maxScroll - currentScroll > 150) return; // not near end, skip
