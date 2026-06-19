@@ -206,9 +206,13 @@ class _ChatScreenState extends State<ChatScreen>
     final viewportWidth = MediaQuery.of(context).size.width;
     final viewportHeight = MediaQuery.of(context).size.height;
 
-    return CustomScrollView(
-      controller: _scrollCtrl,
-      slivers: _buildExchangeSlivers(theme, viewportWidth, viewportHeight),
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: CustomScrollView(
+        controller: _scrollCtrl,
+        clipBehavior: Clip.none,
+        slivers: _buildExchangeSlivers(theme, viewportWidth, viewportHeight),
+      ),
     );
   }
 

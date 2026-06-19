@@ -323,7 +323,6 @@ class _UserMessageState extends State<_UserMessage> {
 
         return Container(
           width: double.infinity,
-          clipBehavior: Clip.hardEdge,
           decoration: decoration,
           child: Stack(
             children: [
