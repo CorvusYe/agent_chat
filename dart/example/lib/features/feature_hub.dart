@@ -533,10 +533,13 @@ final _features = <_Feature>[
       ),
       CodeSnippet(
         '内置主题',
-        'ChatThemes 提供了 3 个内置主题：\n'
-            '├─ ChatThemes.fluent      — Fluent 2 浅色\n'
-            '├─ ChatThemes.fluentDark  — Fluent 2 暗色\n'
-            '└─ ChatThemes.dark        — 默认暗色（紫色调）\n'
+        'ChatThemes 提供了 6 个内置主题（3 类 × 亮暗）：\n'
+            '├─ ChatThemes.fluent          — Fluent 2 浅色\n'
+            '├─ ChatThemes.fluentDark      — Fluent 2 暗色\n'
+            '├─ ChatThemes.light           — 默认亮色（紫色调）\n'
+            '├─ ChatThemes.dark            — 默认暗色（紫色调）\n'
+            '├─ ChatThemes.neumorphicLight — Neumorphism 浅色\n'
+            '└─ ChatThemes.neumorphicDark  — Neumorphism 暗色\n'
             '\n'
             '你也可以用 ChatTheme(...) 构造任意自定义主题。',
       ),

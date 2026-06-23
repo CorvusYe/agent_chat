@@ -29,7 +29,7 @@ final _colorSeeds = <Color>[
 int _chatThemeIndex = 0;
 
 /// 内置 ChatTheme 名称（用于显示）
-const _chatThemeNames = <String>['Fluent', '默认暗色', '默认亮色', 'Neumorphism'];
+const _chatThemeNames = <String>['Fluent', '默认', 'Neumorphism'];
 
 ChatTheme _currentChatTheme(Brightness brightness) {
   switch (_chatThemeIndex) {
@@ -38,10 +38,10 @@ ChatTheme _currentChatTheme(Brightness brightness) {
           ? ChatThemes.fluent
           : ChatThemes.fluentDark;
     case 1:
-      return ChatThemes.dark;
+      return brightness == Brightness.light
+          ? ChatThemes.light
+          : ChatThemes.dark;
     case 2:
-      return ChatThemes.light;
-    case 3:
       return brightness == Brightness.light
           ? ChatThemes.neumorphicLight
           : ChatThemes.neumorphicDark;

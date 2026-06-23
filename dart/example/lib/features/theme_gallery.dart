@@ -3,7 +3,7 @@
 // 展示 agent_chat 支持的主题能力：
 //   - Brightness.dark / Brightness.light 切换
 //   - 6 种 colorSchemeSeed 色彩
-//   - 4 种内置 ChatTheme（Fluent / 默认暗亮 / Neumorphism）
+//   - 3 类 ChatTheme × 亮暗 = 6 种变体
 //   - ChatTheme 全局应用
 
 import 'package:flutter/material.dart';
@@ -145,14 +145,10 @@ class _ThemeGalleryState extends State<ThemeGallery> {
                         ),
                         DropdownMenuItem(
                           value: 1,
-                          child: Text('默认暗色', style: TextStyle(fontSize: 13)),
+                          child: Text('默认', style: TextStyle(fontSize: 13)),
                         ),
                         DropdownMenuItem(
                           value: 2,
-                          child: Text('默认亮色', style: TextStyle(fontSize: 13)),
-                        ),
-                        DropdownMenuItem(
-                          value: 3,
                           child: Text(
                             'Neumorphism',
                             style: TextStyle(fontSize: 13),
