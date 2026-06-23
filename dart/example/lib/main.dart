@@ -29,7 +29,7 @@ final _colorSeeds = <Color>[
 int _chatThemeIndex = 0;
 
 /// 内置 ChatTheme 名称（用于显示）
-const _chatThemeNames = <String>['Fluent 浅色', 'Fluent 暗色', '默认暗色'];
+const _chatThemeNames = <String>['Fluent', '默认暗色', '默认亮色', 'Neumorphism'];
 
 ChatTheme _currentChatTheme(Brightness brightness) {
   switch (_chatThemeIndex) {
@@ -39,6 +39,12 @@ ChatTheme _currentChatTheme(Brightness brightness) {
           : ChatThemes.fluentDark;
     case 1:
       return ChatThemes.dark;
+    case 2:
+      return ChatThemes.light;
+    case 3:
+      return brightness == Brightness.light
+          ? ChatThemes.neumorphicLight
+          : ChatThemes.neumorphicDark;
     default:
       return brightness == Brightness.light
           ? ChatThemes.fluent
@@ -46,7 +52,8 @@ ChatTheme _currentChatTheme(Brightness brightness) {
   }
 }
 
-String get currentChatThemeName => _chatThemeNames[_chatThemeIndex.clamp(0, 2)];
+String get currentChatThemeName =>
+    _chatThemeNames[_chatThemeIndex.clamp(0, _chatThemeNames.length - 1)];
 
 class ShowcaseApp extends StatefulWidget {
   const ShowcaseApp({super.key});
@@ -75,7 +82,7 @@ class ShowcaseAppState extends State<ShowcaseApp> {
 
   void setChatThemeIndex(int index) {
     setState(() {
-      _chatThemeIndex = index.clamp(0, 2);
+      _chatThemeIndex = index.clamp(0, _chatThemeNames.length - 1);
     });
   }
 

@@ -9,6 +9,9 @@ class ChatThemes {
   /// 默认暗色主题（紫色基调）。
   static const dark = _defaultDark;
 
+  /// 默认亮色主题（紫色基调，与 dark 配套）。
+  static const light = _defaultLight;
+
   /// Fluent 2 浅色主题。
   static const fluent = _fluent;
 
@@ -61,6 +64,56 @@ class ChatThemes {
     spinnerColor: Color(0x4DFFFFFF),
     btnSecondaryBg: Color(0x00000000),
     resultBg: Color(0x0A000000),
+    buttonBorderColor: Color(0x1A000000),
+  );
+
+  /// 默认亮色主题（紫色基调 — 与 _defaultDark 配套）。
+  static const _defaultLight = ChatTheme(
+    bgPrimary: Color(0xFFF4F4F9),
+    bgSurface: Color(0xFFFFFFFF),
+    bgPopup: Color(0xFFFFFFFF),
+    bgInput: Color(0xFFF8F8FC),
+    bgCard: Color(0xFFFFFFFF),
+    bgCardHeader: Color(0xFFEEEEF4),
+    bgCommand: Color(0xFFE8E8F0),
+    bgHover: Color(0xFFEAEAEF),
+    bgHoverStrong: Color(0xFFDDDDE5),
+    bgWarning: Color(0xFFFFF8E1),
+    textPrimary: Color(0xFF1A1A2E),
+    textInput: Color(0xFF1A1A2E),
+    textContent: Color(0xFF2D2D3A),
+    textSecondary: Color(0xFF5F5F72),
+    textTertiary: Color(0xFF8F8FA0),
+    textToolResult: Color(0xFF5F5F72),
+    textToolHeader: Color(0xFF7C3AED),
+    textPlaceholder: Color(0xFFB0B0BE),
+    accent: Color(0xFF3B82F6),
+    accentHover: Color(0xFF2563EB),
+    accentActive: Color(0xFF1D4ED8),
+    accentLight: Color(0xFF60A5FA),
+    accentAlpha: Color(0x1F3B82F6),
+    success: Color(0xFF059669),
+    error: Color(0xFFDC2626),
+    warning: Color(0xFFD97706),
+    border: Color(0xFFD1D1DB),
+    borderLight: Color(0xFFE5E5EB),
+    borderStrong: Color(0xFFA8A8B8),
+    borderUser: Color(0xFFC7C7D0),
+    borderAccent: Color(0x403B82F6),
+    borderWarning: Color(0x33D97706),
+    dotThinking: Color(0xFF8F8FA0),
+    dotTool: Color(0xFF7C3AED),
+    dotContent: Color(0xFF3B82F6),
+    dotConfirm: Color(0xFFD97706),
+    headerThinking: Color(0xFF8F8FA0),
+    headerTool: Color(0xFF7C3AED),
+    headerContent: Color(0xFF3B82F6),
+    headerConfirm: Color(0xFFD97706),
+    chevronColor: Color(0xFF8F8FA0),
+    statColor: Color(0xFF8F8FA0),
+    spinnerColor: Color(0xFF8F8FA0),
+    btnSecondaryBg: Color(0x123B82F6),
+    resultBg: Color(0x06000000),
     buttonBorderColor: Color(0x1A000000),
   );
 
