@@ -46,7 +46,7 @@ void main() {
 }
 
 class _App extends StatefulWidget {
-  const _App({super.key});
+  const _App();
   @override
   State<_App> createState() => _AppState();
 }
@@ -57,7 +57,6 @@ class _AppState extends State<_App> {
   late final vine.LlmClient llmClient;
   late final DynamicNodeService nodeService;
   late final DynamicWorkflowService wfService;
-  bool _ready = false;
 
   @override
   void initState() {
@@ -86,17 +85,16 @@ class _AppState extends State<_App> {
   Future<void> _init(String nodesDir, String wfsDir) async {
     await DynamicNodeService.ensureFixtures(nodesDir, wfsDir);
     _loadAll(nodesDir, wfsDir);
-    _ready = true;
   }
 
   void _loadAll(String nodesDir, String wfsDir) {
     final nd = Directory(nodesDir);
     if (nd.existsSync()) {
       for (final f in nd.listSync().whereType<File>()) {
-        if (!f.path.endsWith('.yaml') && !f.path.endsWith('.yml')) continue;
+        if (!f.path.endsWith('.yaml') && !f.path.endsWith('.yml')) { continue; }
         final content = f.readAsStringSync();
         final result = vine.YamlParser.parseAll([content]);
-        for (final n in result.nodes) registry.registerNode(n);
+        for (final n in result.nodes) { registry.registerNode(n); }
       }
     }
     final wd = Directory(wfsDir);

@@ -86,6 +86,8 @@ class _QueueInputDecorator with ChangeNotifier implements ChatBus {
   Duration? get elapsed => _inner.elapsed;
   @override
   int get activeExchangeCount => _inner.activeExchangeCount;
+  @override
+  ValueNotifier<int> get attentionSignal => _inner.attentionSignal;
 
   @override
   void sendMessage(String text) {

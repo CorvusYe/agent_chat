@@ -8,12 +8,10 @@
 //   flutter test --dart-define-from-file=.env.test integration_test/vine_ai_streaming_test.dart
 
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:agent_chat/agent_chat.dart';
-import '../lib/vine_ai_dynamic_service.dart';
 import 'package:vine_ai/vine_ai.dart' as vine;
 
 void main() {
@@ -57,13 +55,12 @@ void main() {
       expect(completed.fullText, deltas.last.text);
 
       // 验证 total duration 合理（首 token 延迟 + 分块间隔）
-      print('流式分块数: ${deltas.length}');
-      print('最终内容长度: ${deltas.last.text.length}');
+      debugPrint('流式分块数: ${deltas.length}');
+      debugPrint('最终内容长度: ${deltas.last.text.length}');
     });
 
     test('elapsed 实时更新（首 token 延迟时不卡住）', () async {
       final llm = _MockStreamClient();
-      final registry = vine.WorkflowRegistry();
 
       // 测试首 token 延迟 500ms + 3 个分块各间隔 100ms
       final sw = Stopwatch()..start();
@@ -72,12 +69,10 @@ void main() {
 
       final started = events.whereType<ThinkingStarted>().first;
       expect(started, isA<ThinkingStarted>());
-
-      final completed = events.whereType<ThinkingCompleted>().first;
       final elapsedMs = sw.elapsedMilliseconds;
 
       // 首 token 延迟 + 分块间隔应该使总耗时 > 0
-      print('总耗时: ${elapsedMs}ms');
+      debugPrint('总耗时: ${elapsedMs}ms');
       expect(elapsedMs, greaterThan(0));
     });
   });

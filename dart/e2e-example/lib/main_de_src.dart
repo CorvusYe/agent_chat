@@ -270,6 +270,7 @@ Future<void> _processWithTools(
     // ── 缓存 ──
     var thinkBuffer = '';
     var thinkEmitted = false;
+    // ignore: unused_local_variable
     var contentBuffer = '';
 
     // ── 推理流：流式输出 ──
@@ -368,13 +369,11 @@ Future<void> _processWithTools(
             final handler = answerSettings[tc.function.name];
             if (handler == null) continue;
             Map<String, dynamic> parsed = {};
-            if (tc.function.arguments is String) {
-              try {
-                parsed =
-                    json.decode(tc.function.arguments as String)
-                        as Map<String, dynamic>;
-              } catch (_) {}
-            }
+            try {
+              parsed = Map<String, dynamic>.from(
+                json.decode(tc.function.arguments),
+              );
+            } catch (_) {}
             parsed['_tool_call_id'] = tc.id;
             return await handler(args.copyWith(prev: parsed));
           }

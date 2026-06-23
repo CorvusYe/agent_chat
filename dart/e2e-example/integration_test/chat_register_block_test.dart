@@ -462,6 +462,8 @@ class _TestCustomBus extends ChangeNotifier implements ChatBus {
 
   @override
   int get activeExchangeCount => 0;
+  @override
+  late final ValueNotifier<int> attentionSignal = ValueNotifier<int>(0);
 
   @override
   void sendMessage(String text) {}

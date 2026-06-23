@@ -2,7 +2,6 @@
 //
 // 验证所有块类型的时间轴圆点与竖线是否共享同一个圆心。
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:agent_chat/agent_chat.dart';
 

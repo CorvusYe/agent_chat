@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:agent_chat/agent_chat.dart';
+// ignore: avoid_relative_lib_imports
 import '../lib/vine_ai_dynamic_service.dart';
 
 void main() {

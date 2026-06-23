@@ -415,17 +415,6 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     }
   }
 
-  void _flushGroup(String exchangeId, List<ChatBlock> blocks) {
-    if (blocks.isEmpty) return;
-    final group = BlockGroup(
-      id: 'g_${_groupCounter++}',
-      blocks: List.of(blocks),
-    );
-    _updateExchange(
-      exchangeId,
-      (ex) => ex.copyWith(groups: [...ex.groups, group]),
-    );
-  }
 
   /// Ensure [block] is visible in the exchange. Creates a single-block group
   /// if not already present, so the UI can render the block immediately.
