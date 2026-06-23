@@ -22,10 +22,12 @@ void main() {
       final llm = _MockStreamClient();
       final bus = DefaultChatBus(onGenerate: (text) => _genEvents(text, llm));
 
-      await tester.pumpWidget(MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(body: ChatScreen(bus: bus)),
-      ));
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(body: ChatScreen(bus: bus)),
+        ),
+      );
       await tester.pump();
 
       bus.sendMessage('测试消息');
@@ -46,8 +48,11 @@ void main() {
 
       // 验证分块逐步增长：每个 delta 的 content 比前一个长
       for (var i = 1; i < deltas.length; i++) {
-        expect(deltas[i].text.length, greaterThan(deltas[i - 1].text.length),
-            reason: '第 $i 个 delta 应该比第 ${i - 1} 个长');
+        expect(
+          deltas[i].text.length,
+          greaterThan(deltas[i - 1].text.length),
+          reason: '第 $i 个 delta 应该比第 ${i - 1} 个长',
+        );
       }
 
       // 验证最后一个 delta 和 ThinkingCompleted 内容一致
@@ -84,14 +89,20 @@ Stream<ExchangeEvent> _genEvents(String userMsg, vine.LlmClient llm) async* {
 
   yield ThinkingStarted(id, 'think');
 
-  final resp = await llm.chat(vine.ChatRequest(
-    model: 'test-model',
-    messages: [
-      vine.ChatMessage(role: vine.MessageRole.system, content: '你是调度器。分析用户需求。'),
-      vine.ChatMessage(role: vine.MessageRole.user, content: userMsg),
-    ],
-    maxTokens: 256, stream: true,
-  ));
+  final resp = await llm.chat(
+    vine.ChatRequest(
+      model: 'test-model',
+      messages: [
+        vine.ChatMessage(
+          role: vine.MessageRole.system,
+          content: '你是调度器。分析用户需求。',
+        ),
+        vine.ChatMessage(role: vine.MessageRole.user, content: userMsg),
+      ],
+      maxTokens: 256,
+      stream: true,
+    ),
+  );
 
   if (resp.contentStream != null) {
     var displayed = '';
@@ -116,11 +127,7 @@ class _MockStreamClient implements vine.LlmClient {
     const content = '根据您的需求，我选择了合适的工作流来执行。';
 
     // 模拟 5 个分块
-    final chunks = <String>[
-      '根据您的需求，',
-      '我选择了合适的',
-      '工作流来执行。',
-    ];
+    final chunks = <String>['根据您的需求，', '我选择了合适的', '工作流来执行。'];
 
     return vine.ChatResponse(
       content: content,

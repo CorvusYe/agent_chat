@@ -415,7 +415,6 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
     }
   }
 
-
   /// Ensure [block] is visible in the exchange. Creates a single-block group
   /// if not already present, so the UI can render the block immediately.
   void _ensureBlockInExchange(String exchangeId, ChatBlock block) {

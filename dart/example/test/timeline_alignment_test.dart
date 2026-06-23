@@ -26,17 +26,26 @@ void main() {
         // 竖线左边缘 = center - lineW/2
         final lineLeft = lineCenter - t.timelineLineWidth / 2;
 
-        expect(dotCenter, lineCenter,
-            reason: '圆点中心($dotCenter)与竖线中心($lineCenter)应相等');
-        expect(dotLeft + t.timelineDotSize / 2, lineLeft + t.timelineLineWidth / 2,
-            reason: '圆点与竖线的实际物理中心应相等');
+        expect(
+          dotCenter,
+          lineCenter,
+          reason: '圆点中心($dotCenter)与竖线中心($lineCenter)应相等',
+        );
+        expect(
+          dotLeft + t.timelineDotSize / 2,
+          lineLeft + t.timelineLineWidth / 2,
+          reason: '圆点与竖线的实际物理中心应相等',
+        );
 
         // 验证圆心在 gutter 内
         expect(dotCenter, greaterThan(0));
         expect(dotCenter, lessThan(t.timelineGutter));
         // 验证不超出边界
         expect(dotLeft, greaterThanOrEqualTo(0));
-        expect(dotLeft + t.timelineDotSize, lessThanOrEqualTo(t.timelineGutter));
+        expect(
+          dotLeft + t.timelineDotSize,
+          lessThanOrEqualTo(t.timelineGutter),
+        );
       });
 
       test('${entry.key}: 块内容竖线对齐', () {
@@ -48,8 +57,12 @@ void main() {
         final gutterCenter = t.timelineGutter / 2;
 
         // 绝对值相等，方向相反
-        expect(contentLineCenter.abs(), gutterCenter,
-            reason: '内容竖线中心(${contentLineCenter.abs()})应与gutter中心($gutterCenter)绝对值相等');
+        expect(
+          contentLineCenter.abs(),
+          gutterCenter,
+          reason:
+              '内容竖线中心(${contentLineCenter.abs()})应与gutter中心($gutterCenter)绝对值相等',
+        );
       });
 
       test('${entry.key}: spacingLg + timelineGutter > 0', () {
@@ -67,10 +80,10 @@ void main() {
     const dotSize = 12.0;
     const lineW = 2.0;
 
-    final dotCenter = gutterW / 2;    // 12
-    final lineCenter = gutterW / 2;   // 12
-    final dotLeft = dotCenter - dotSize / 2;   // 6
-    final lineLeft = lineCenter - lineW / 2;   // 11
+    final dotCenter = gutterW / 2; // 12
+    final lineCenter = gutterW / 2; // 12
+    final dotLeft = dotCenter - dotSize / 2; // 6
+    final lineLeft = lineCenter - lineW / 2; // 11
 
     expect(dotCenter, lineCenter, reason: 'macOS: 圆点与竖线中心应相等');
     expect(dotLeft + dotSize / 2, 12, reason: 'macOS: 圆点中心应为12');
@@ -90,7 +103,10 @@ void main() {
     final oldCenter = oldLeft + dotSize / 2; // -11
 
     // 验证差异
-    expect((correctCenter - oldCenter).abs(), 21,
-        reason: '旧版left:-17与新版gutter/2中心相差21px');
+    expect(
+      (correctCenter - oldCenter).abs(),
+      21,
+      reason: '旧版left:-17与新版gutter/2中心相差21px',
+    );
   });
 }

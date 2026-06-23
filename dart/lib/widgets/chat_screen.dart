@@ -402,7 +402,10 @@ class _ChatScreenState extends State<ChatScreen>
                   top: -6,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
-                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.error,
                       borderRadius: BorderRadius.circular(8),

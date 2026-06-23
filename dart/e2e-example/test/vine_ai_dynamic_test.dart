@@ -205,14 +205,17 @@ stateDiagram-v2
 
   group('BlockRegistry Custom Types', () {
     test('registerCustom with BlockDef', () {
-      BlockRegistry.registerCustom(BlockDef(
-        name: 'vine_test_block',
-        builder: (ctx, block, bus, ex) => const SizedBox(width: 100, height: 100),
-        icon: Icons.code,
-        dotColor: Color(0xFF7C3AED),
-        headerColor: Color(0xFF7C3AED),
-        label: '测试',
-      ));
+      BlockRegistry.registerCustom(
+        BlockDef(
+          name: 'vine_test_block',
+          builder: (ctx, block, bus, ex) =>
+              const SizedBox(width: 100, height: 100),
+          icon: Icons.code,
+          dotColor: Color(0xFF7C3AED),
+          headerColor: Color(0xFF7C3AED),
+          label: '测试',
+        ),
+      );
 
       final builder = BlockRegistry.getCustom('vine_test_block');
       expect(builder, isNotNull);

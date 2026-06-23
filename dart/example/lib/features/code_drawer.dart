@@ -284,7 +284,9 @@ TextSpan _highlight(String code, bool isDark) {
           line[i] == '└' ||
           line[i] == '─') {
         int end = i;
-        while (end < line.length && "→←├└─│".contains(line[end])) { end++; }
+        while (end < line.length && "→←├└─│".contains(line[end])) {
+          end++;
+        }
         spans.add(
           TextSpan(
             text: line.substring(i, end),
@@ -298,7 +300,9 @@ TextSpan _highlight(String code, bool isDark) {
       // 7. 标识符 / 关键字匹配
       if (_isIdentStart(line[i])) {
         int end = i + 1;
-        while (end < line.length && _isIdentPart(line[end])) { end++; }
+        while (end < line.length && _isIdentPart(line[end])) {
+          end++;
+        }
         final word = line.substring(i, end);
 
         if (_dartKeywords.hasMatch(word)) {
@@ -369,7 +373,9 @@ TextSpan _highlightInline(String code, bool isDark) {
   while (i < code.length) {
     if (_isIdentStart(code[i])) {
       int end = i + 1;
-      while (end < code.length && _isIdentPart(code[end])) { end++; }
+      while (end < code.length && _isIdentPart(code[end])) {
+        end++;
+      }
       final word = code.substring(i, end);
       if (_dartKeywords.hasMatch(word)) {
         spans.add(

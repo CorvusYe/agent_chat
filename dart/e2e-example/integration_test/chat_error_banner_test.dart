@@ -15,14 +15,13 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Chat — Error Banner', () {
-    testWidgets('failed exchange shows error banner with icon and message',
-        (tester) async {
+    testWidgets('failed exchange shows error banner with icon and message', (
+      tester,
+    ) async {
       // Use a fixed-config mock AI that always produces an error.
       // This avoids relying on text-based routing (configForText).
       final bus = DefaultChatBus(
-        onGenerate: createFixedMockAI(
-          const MockConfig(hasError: true),
-        ),
+        onGenerate: createFixedMockAI(const MockConfig(hasError: true)),
       );
 
       await tester.pumpWidget(
@@ -39,7 +38,9 @@ void main() {
       await tester.pump();
 
       // Wait for the mock AI to finish (almost instant for error case)
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 200)));
+      await tester.runAsync(
+        () => Future.delayed(const Duration(milliseconds: 200)),
+      );
       await tester.pump(const Duration(milliseconds: 300));
 
       // Verify exchange is in failed state

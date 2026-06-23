@@ -26,22 +26,26 @@ const String modelId = String.fromEnvironment(
 final bool hasRealKey = apiKey.isNotEmpty && apiKey != 'YOUR_API_KEY';
 
 void main() {
-  BlockRegistry.registerCustom(BlockDef(
-    name: 'vine_yaml_node',
-    builder: _yamlBlock,
-    icon: Icons.code,
-    dotColor: Color(0xFF7C3AED),
-    headerColor: Color(0xFF7C3AED),
-    label: 'YAML 节点',
-  ));
-  BlockRegistry.registerCustom(BlockDef(
-    name: 'vine_mmd_workflow',
-    builder: _mmdBlock,
-    icon: Icons.account_tree,
-    dotColor: Color(0xFF0EA5E9),
-    headerColor: Color(0xFF0EA5E9),
-    label: '工作流',
-  ));
+  BlockRegistry.registerCustom(
+    BlockDef(
+      name: 'vine_yaml_node',
+      builder: _yamlBlock,
+      icon: Icons.code,
+      dotColor: Color(0xFF7C3AED),
+      headerColor: Color(0xFF7C3AED),
+      label: 'YAML 节点',
+    ),
+  );
+  BlockRegistry.registerCustom(
+    BlockDef(
+      name: 'vine_mmd_workflow',
+      builder: _mmdBlock,
+      icon: Icons.account_tree,
+      dotColor: Color(0xFF0EA5E9),
+      headerColor: Color(0xFF0EA5E9),
+      label: '工作流',
+    ),
+  );
   runApp(const _App());
 }
 
@@ -91,10 +95,14 @@ class _AppState extends State<_App> {
     final nd = Directory(nodesDir);
     if (nd.existsSync()) {
       for (final f in nd.listSync().whereType<File>()) {
-        if (!f.path.endsWith('.yaml') && !f.path.endsWith('.yml')) { continue; }
+        if (!f.path.endsWith('.yaml') && !f.path.endsWith('.yml')) {
+          continue;
+        }
         final content = f.readAsStringSync();
         final result = vine.YamlParser.parseAll([content]);
-        for (final n in result.nodes) { registry.registerNode(n); }
+        for (final n in result.nodes) {
+          registry.registerNode(n);
+        }
       }
     }
     final wd = Directory(wfsDir);
@@ -295,22 +303,30 @@ class _MockLlmClient implements vine.LlmClient {
     // 模拟网络延迟：首 token 延迟 300-800ms
     await Future.delayed(Duration(milliseconds: 300 + _rand.nextInt(500)));
 
-    final sp = request.messages.where((m) => m.role == vine.MessageRole.system).map((m) => m.content).join('\n');
+    final sp = request.messages
+        .where((m) => m.role == vine.MessageRole.system)
+        .map((m) => m.content)
+        .join('\n');
     final last = request.messages.last.content;
 
     String content;
     List<vine.ToolCall>? toolCalls;
 
     if (sp.contains('调度器')) {
-      if (last.toLowerCase().contains('变换') || last.toLowerCase().contains('transform')) {
+      if (last.toLowerCase().contains('变换') ||
+          last.toLowerCase().contains('transform')) {
         content = '检测到文本变换需求，选择 transform_pipeline 工作流。';
         toolCalls = [vine.ToolCall(name: 'transform_pipeline', arguments: {})];
-      } else if (last.toLowerCase().contains('保存') || last.toLowerCase().contains('日志')) {
+      } else if (last.toLowerCase().contains('保存') ||
+          last.toLowerCase().contains('日志')) {
         content = '检测到日志保存需求，选择 echo_pipeline 工作流。';
         toolCalls = [vine.ToolCall(name: 'echo_pipeline', arguments: {})];
-      } else if (last.toLowerCase().contains('知识图谱') || last.toLowerCase().contains('工作流')) {
+      } else if (last.toLowerCase().contains('知识图谱') ||
+          last.toLowerCase().contains('工作流')) {
         content = '需要创建新工作流，选择 create_workflow_pipeline 元工作流。';
-        toolCalls = [vine.ToolCall(name: 'create_workflow_pipeline', arguments: {})];
+        toolCalls = [
+          vine.ToolCall(name: 'create_workflow_pipeline', arguments: {}),
+        ];
       } else {
         content = '您好，我是 Vine AI 助手。请问有什么可以帮您？';
       }

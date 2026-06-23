@@ -356,9 +356,10 @@ class _ConfirmGateState extends State<_ConfirmGate>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _flashAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _flashCtrl, curve: Curves.easeOut),
-    );
+    _flashAnim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _flashCtrl, curve: Curves.easeOut));
     widget.bus.attentionSignal.addListener(_onAttention);
   }
 
@@ -377,12 +378,15 @@ class _ConfirmGateState extends State<_ConfirmGate>
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    final hasArgs = widget.block.toolArgs != null && widget.block.toolArgs!.isNotEmpty;
+    final hasArgs =
+        widget.block.toolArgs != null && widget.block.toolArgs!.isNotEmpty;
 
     return AnimatedBuilder(
       animation: _flashAnim,
       builder: (context, child) {
-        final flashColor = theme.accent.withAlpha((_flashAnim.value * 30).round());
+        final flashColor = theme.accent.withAlpha(
+          (_flashAnim.value * 30).round(),
+        );
         final bgColor = Color.lerp(theme.bgCard, flashColor, _flashAnim.value)!;
         return Container(
           padding: theme.confirmPadding,
@@ -396,7 +400,8 @@ class _ConfirmGateState extends State<_ConfirmGate>
             mainAxisSize: MainAxisSize.min,
             children: [
               // 头部：工具名 + 描述
-              if (widget.block.toolName != null || widget.block.description != null)
+              if (widget.block.toolName != null ||
+                  widget.block.description != null)
                 Padding(
                   padding: EdgeInsets.only(
                     bottom: hasArgs ? theme.spacingXs : theme.spacingXs + 2,
@@ -406,7 +411,9 @@ class _ConfirmGateState extends State<_ConfirmGate>
                       if (widget.block.toolName != null)
                         Flexible(
                           child: Padding(
-                            padding: EdgeInsets.only(right: theme.spacingXs + 2),
+                            padding: EdgeInsets.only(
+                              right: theme.spacingXs + 2,
+                            ),
                             child: Text(
                               widget.block.toolName!,
                               overflow: TextOverflow.ellipsis,
@@ -467,31 +474,39 @@ class _ConfirmGateState extends State<_ConfirmGate>
                     label: '允许',
                     filled: true,
                     color: theme.accent,
-                    onPressed: () =>
-                        widget.bus.confirmTool(widget.exchangeId, widget.block.toolName ?? '', false),
+                    onPressed: () => widget.bus.confirmTool(
+                      widget.exchangeId,
+                      widget.block.toolName ?? '',
+                      false,
+                    ),
                   ),
                   if (widget.block.canAlwaysAllow)
                     _CompactBtn(
                       label: '始终允许',
                       filled: false,
                       color: theme.accent,
-                      onPressed: () =>
-                          widget.bus.confirmTool(widget.exchangeId, widget.block.toolName ?? '', true),
+                      onPressed: () => widget.bus.confirmTool(
+                        widget.exchangeId,
+                        widget.block.toolName ?? '',
+                        true,
+                      ),
                     ),
                   _CompactBtn(
                     label: '取消',
                     filled: false,
                     color: theme.textSecondary,
-                    onPressed: () =>
-                        widget.bus.cancelTool(widget.exchangeId, widget.block.toolName ?? ''),
+                    onPressed: () => widget.bus.cancelTool(
+                      widget.exchangeId,
+                      widget.block.toolName ?? '',
+                    ),
                   ),
                 ],
               ),
             ],
           ),
         );
-    },
-  );
+      },
+    );
   }
 }
 
