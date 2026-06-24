@@ -7,7 +7,7 @@ import '../models/exchange.dart';
 import '../models/chat_block.dart';
 import '../theme/chat_theme.dart';
 import '../l10n/chat_l10n.dart';
-import 'exchange_widget.dart';
+import 'block/block_utils.dart';
 import 'block_timeline_section.dart';
 import 'stats_bar.dart';
 

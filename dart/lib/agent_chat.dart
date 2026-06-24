@@ -11,11 +11,13 @@ export 'blocks/block_registry.dart';
 
 export 'widgets/chat_screen.dart';
 export 'widgets/exchange_widget.dart';
-export 'widgets/chat_input.dart';
 export 'widgets/block/block_header.dart';
 export 'widgets/block/block_content.dart';
 export 'widgets/block/block_anim.dart';
 export 'widgets/block/block_placeholder.dart';
+export 'widgets/block/block_utils.dart';
+export 'widgets/block/block_timeline_item.dart';
+export 'widgets/block/block_timeline_builder.dart';
 
 export 'theme/chat_theme.dart';
 export 'theme/themes.dart';

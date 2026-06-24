@@ -6,7 +6,7 @@ import '../bus/chat_bus.dart';
 import '../theme/chat_theme.dart';
 import '../blocks/block_registry.dart';
 import '../l10n/chat_l10n.dart';
-import 'exchange_widget.dart';
+import 'block/block_utils.dart';
 import 'block/block_header.dart';
 import 'block/block_content.dart';
 import 'block/block_anim.dart';
