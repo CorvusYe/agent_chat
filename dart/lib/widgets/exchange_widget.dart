@@ -6,6 +6,7 @@ import '../models/chat_block.dart';
 import '../bus/chat_bus.dart';
 import '../blocks/block_registry.dart';
 import '../theme/chat_theme.dart';
+import '../l10n/chat_l10n.dart';
 
 /// 单条 exchange — 含用户消息 + 时间轴内的所有 block。
 class ExchangeWidget extends StatelessWidget {
@@ -159,15 +160,18 @@ Widget buildThinkingPlaceholder(BuildContext context, Exchange exchange) {
 //  Public helpers — label & icon for block headers
 // ═══════════════════════════════════════════════════════
 
-String labelForBlock(ChatBlock block) {
-  if (block.type == BlockType.thinking) return '思考';
-  if (block.type == BlockType.tool) return '工具 · ${block.toolName ?? ""}';
-  if (block.type == BlockType.content) return '回答';
-  if (block.type == BlockType.confirmation) return '需要确认';
+String labelForBlock(ChatBlock block, [ChatL10n? l10n]) {
+  final L = l10n ?? ChatL10n.zhHans;
+  if (block.type == BlockType.thinking) return L.labelThinking;
+  if (block.type == BlockType.tool) {
+    return L.labelToolWith(block.toolName ?? '');
+  }
+  if (block.type == BlockType.content) return L.labelContent;
+  if (block.type == BlockType.confirmation) return L.labelConfirm;
   // 自定义类型 — 从 BlockRegistry 取样式
   final style = BlockRegistry.getDef(block.type);
   if (style != null) return style.label;
-  return block.toolName ?? '自定义';
+  return block.toolName ?? L.labelCustom;
 }
 
 IconData iconForBlock(ChatBlock block) {
@@ -376,7 +380,9 @@ class _UserMessageState extends State<_UserMessage> {
                     child: Padding(
                       padding: const EdgeInsets.all(2),
                       child: Text(
-                        _expanded ? '收起' : '展开全部',
+                        _expanded
+                            ? ChatL10n.of(context).collapse
+                            : ChatL10n.of(context).expandAll,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
@@ -527,6 +533,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
+    final l10n = ChatL10n.of(context);
     final lineColor = _isRunning && _breathingCtrl != null
         ? widget.showDotColor.withValues(
             alpha: 0.5 + 0.5 * _breathingCtrl!.value,
@@ -613,7 +620,7 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
                   child: buildBlockHeader(
                     context: context,
                     icon: _iconFor(widget.block),
-                    label: _labelFor(widget.block),
+                    label: _labelFor(widget.block, l10n),
                     color: animatedHeaderColor,
                     theme: theme,
                     showChevron: true,
@@ -652,7 +659,8 @@ class _BlockTimelineItemState extends State<_BlockTimelineItem>
     );
   }
 
-  String _labelFor(ChatBlock block) => labelForBlock(block);
+  String _labelFor(ChatBlock block, ChatL10n l10n) =>
+      labelForBlock(block, l10n);
 
   IconData _iconFor(ChatBlock block) => iconForBlock(block);
 }
@@ -916,7 +924,7 @@ class _ThinkingPlaceholderState extends State<_ThinkingPlaceholder>
                 ),
                 SizedBox(width: 6),
                 Text(
-                  '正在思考',
+                  ChatL10n.of(context).thinkingPlaceholder,
                   style: TextStyle(
                     fontSize: theme.fontSizeSm,
                     fontWeight: FontWeight.w500,

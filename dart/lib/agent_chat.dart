@@ -17,3 +17,5 @@ export 'theme/chat_theme.dart';
 export 'theme/themes.dart';
 export 'theme/neu_helpers.dart';
 export 'theme/custom_borders.dart';
+
+export 'l10n/chat_l10n.dart';

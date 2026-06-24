@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
 import '../main.dart';
+import '../app_l10n.dart';
 
 class ThemeGallery extends StatefulWidget {
   const ThemeGallery({super.key});
@@ -69,6 +70,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
   Widget build(BuildContext context) {
     final appState = ShowcaseApp.of(context);
     final theme = Theme.of(context);
+    final L = AppL10n.of(context);
 
     return Column(
       children: [
@@ -84,16 +86,16 @@ class _ThemeGalleryState extends State<ThemeGallery> {
               Row(
                 children: [
                   SegmentedButton<ThemeMode>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: ThemeMode.light,
-                        label: Text('亮色'),
-                        icon: Icon(Icons.light_mode, size: 16),
+                        label: Text(L.light),
+                        icon: const Icon(Icons.light_mode, size: 16),
                       ),
                       ButtonSegment(
                         value: ThemeMode.dark,
-                        label: Text('暗色'),
-                        icon: Icon(Icons.dark_mode, size: 16),
+                        label: Text(L.dark),
+                        icon: const Icon(Icons.dark_mode, size: 16),
                       ),
                     ],
                     selected: {appState?.themeMode ?? ThemeMode.dark},
@@ -109,7 +111,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
                   IconButton(
                     onPressed: () => appState?.cycleColorSeed(),
                     icon: const Icon(Icons.palette_outlined, size: 20),
-                    tooltip: '切换配色',
+                    tooltip: L.switchColor,
                   ),
                   // 当前配色指示
                   Container(
@@ -122,7 +124,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _themeNames[appState?.colorSeed] ?? 'teal',
+                    L.colorName(_themeNames[appState?.colorSeed] ?? 'teal'),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -131,27 +133,33 @@ class _ThemeGalleryState extends State<ThemeGallery> {
               // 第2行：内置 ChatTheme 选择
               Row(
                 children: [
-                  Text('ChatTheme', style: theme.textTheme.labelSmall),
+                  Text(L.chatThemeLabel, style: theme.textTheme.labelSmall),
                   const SizedBox(width: 8),
                   Expanded(
                     child: DropdownButton<int>(
                       value: appState?.chatThemeIndex ?? 0,
                       isDense: true,
                       underline: const SizedBox(),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 0,
-                          child: Text('Fluent', style: TextStyle(fontSize: 13)),
+                          child: Text(
+                            L.themeFluent,
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 1,
-                          child: Text('默认', style: TextStyle(fontSize: 13)),
+                          child: Text(
+                            L.themeDefault,
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 2,
                           child: Text(
-                            'Neumorphism',
-                            style: TextStyle(fontSize: 13),
+                            L.themeNeumorphism,
+                            style: const TextStyle(fontSize: 13),
                           ),
                         ),
                       ],

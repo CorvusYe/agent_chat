@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
 import 'features/feature_hub.dart';
+import 'app_l10n.dart';
 
 void main() {
   runApp(const ShowcaseApp());
@@ -27,9 +28,6 @@ final _colorSeeds = <Color>[
 
 // ── 内置 ChatTheme 配置 ──
 int _chatThemeIndex = 0;
-
-/// 内置 ChatTheme 名称（用于显示）
-const _chatThemeNames = <String>['Fluent', '默认', 'Neumorphism'];
 
 ChatTheme _currentChatTheme(Brightness brightness) {
   switch (_chatThemeIndex) {
@@ -52,9 +50,6 @@ ChatTheme _currentChatTheme(Brightness brightness) {
   }
 }
 
-String get currentChatThemeName =>
-    _chatThemeNames[_chatThemeIndex.clamp(0, _chatThemeNames.length - 1)];
-
 class ShowcaseApp extends StatefulWidget {
   const ShowcaseApp({super.key});
 
@@ -66,6 +61,8 @@ class ShowcaseApp extends StatefulWidget {
 }
 
 class ShowcaseAppState extends State<ShowcaseApp> {
+  Locale _locale = WidgetsBinding.instance.platformDispatcher.locale;
+
   ThemeMode get themeMode => _themeMode;
   Color get colorSeed => _colorSeeds[_colorSeedIndex];
   int get chatThemeIndex => _chatThemeIndex;
@@ -82,8 +79,30 @@ class ShowcaseAppState extends State<ShowcaseApp> {
 
   void setChatThemeIndex(int index) {
     setState(() {
-      _chatThemeIndex = index.clamp(0, _chatThemeNames.length - 1);
+      _chatThemeIndex = index.clamp(0, 2);
     });
+  }
+
+  void setLocale(Locale locale) {
+    setState(() => _locale = locale);
+  }
+
+  /// Cycle through supported locales: zh-Hans → zh-Hant → en → zh-Hans …
+  void cycleLocale() {
+    final isHans = _locale.languageCode == 'zh' && _locale.scriptCode != 'Hant';
+    final isHant =
+        _locale.languageCode == 'zh' &&
+        (_locale.scriptCode == 'Hant' ||
+            _locale.countryCode == 'TW' ||
+            _locale.countryCode == 'HK');
+
+    if (isHans) {
+      setLocale(Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'));
+    } else if (isHant) {
+      setLocale(const Locale('en'));
+    } else {
+      setLocale(Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'));
+    }
   }
 
   @override
@@ -94,26 +113,34 @@ class ShowcaseAppState extends State<ShowcaseApp> {
         ? Brightness.dark
         : Brightness.dark;
     final chatTheme = _currentChatTheme(brightness);
+    final appL10n = AppL10n.fromLocale(_locale);
+    final chatL10n = ChatL10n.fromLocale(_locale);
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Agent Chat Showcase',
-      themeMode: _themeMode,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorSchemeSeed: colorSeed,
-        useMaterial3: true,
-        fontFamily: 'AlibabaPuHuiTi',
-        extensions: [chatTheme],
+    return AppL10nScope(
+      l10n: appL10n,
+      child: ChatL10nScope(
+        l10n: chatL10n,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Agent Chat Showcase',
+          themeMode: _themeMode,
+          theme: ThemeData(
+            brightness: Brightness.light,
+            colorSchemeSeed: colorSeed,
+            useMaterial3: true,
+            fontFamily: 'AlibabaPuHuiTi',
+            extensions: [chatTheme],
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            colorSchemeSeed: colorSeed,
+            useMaterial3: true,
+            fontFamily: 'AlibabaPuHuiTi',
+            extensions: [chatTheme],
+          ),
+          home: const FeatureHub(),
+        ),
       ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorSchemeSeed: colorSeed,
-        useMaterial3: true,
-        fontFamily: 'AlibabaPuHuiTi',
-        extensions: [chatTheme],
-      ),
-      home: const FeatureHub(),
     );
   }
 }

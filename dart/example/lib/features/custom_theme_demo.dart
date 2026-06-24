@@ -13,6 +13,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
+import '../app_l10n.dart';
 
 // 内置主题已移至 ChatThemes.neumorphicLight / neumorphicDark
 
@@ -228,8 +229,8 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
               children: [
                 Icon(Icons.auto_awesome, size: 16, color: chatTheme.accent),
                 const SizedBox(width: 8),
-                const Text(
-                  'macOS Neumorphism',
+                Text(
+                  AppL10n.of(context).themeDemoTitle,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -246,7 +247,7 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
                 // Neumorphic 图标按钮（微凸起）
                 _NeuIconButton(
                   icon: Icons.info_outline,
-                  tooltip: 'Neumorphism: 双阴影挤出 + 单色系',
+                  tooltip: AppL10n.of(context).neuTooltip,
                   neu: neu,
                 ),
               ],
@@ -304,7 +305,7 @@ class _NeuToggle extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              value ? '暗色' : '亮色',
+              value ? AppL10n.of(context).dark : AppL10n.of(context).light,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

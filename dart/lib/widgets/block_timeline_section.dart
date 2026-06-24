@@ -5,6 +5,7 @@ import '../models/chat_block.dart';
 import '../bus/chat_bus.dart';
 import '../theme/chat_theme.dart';
 import '../blocks/block_registry.dart';
+import '../l10n/chat_l10n.dart';
 import 'exchange_widget.dart';
 
 /// 单个 exchange 的 block 时间轴区域（Sliver 版本）。
@@ -226,7 +227,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
           ),
         ),
         icon: Icons.error_outline,
-        label: '错误',
+        label: ChatL10n.of(context).errorLabel,
         color: theme.error,
         onTap: () => _onToggleCollapsed(collapseKey, collapsed),
         expanded: !collapsed,
@@ -257,7 +258,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
                 ),
         ),
         icon: iconForBlock(block),
-        label: labelForBlock(block),
+        label: labelForBlock(block, ChatL10n.of(context)),
         color: anim.applyBreathing(headerColorFor(block, theme)),
         onTap: () => _onToggleCollapsed(collapseKey, collapsed),
         expanded: !collapsed,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/chat_theme.dart';
+import '../l10n/chat_l10n.dart';
 
 /// 统计栏 — 显示 token 数。
 class StatsBar extends StatefulWidget {
@@ -56,20 +57,19 @@ class _StatsBarState extends State<StatsBar>
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
+    final l10n = ChatL10n.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         _StatItem(
           icon: Icons.timeline,
-          label: '${_formatNumber(_displayed)} 词元',
+          label: l10n.statsTokens(_displayed),
           color: theme.statColor,
         ),
       ],
     );
   }
-
-  String _formatNumber(int n) => n.toString();
 }
 
 class _StatItem extends StatelessWidget {

@@ -9,6 +9,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
+import '../app_l10n.dart';
 
 class InputModesDemo extends StatefulWidget {
   const InputModesDemo({super.key});
@@ -41,11 +42,11 @@ class _InputModesDemoState extends State<InputModesDemo>
           controller: _tabController,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          tabs: const [
-            Tab(text: '默认'),
-            Tab(text: '+ 队列按钮'),
-            Tab(text: '+ Token 按钮'),
-            Tab(text: '纯文本'),
+          tabs: [
+            Tab(text: AppL10n.of(context).inputDefault),
+            Tab(text: AppL10n.of(context).inputQueue),
+            Tab(text: AppL10n.of(context).inputToken),
+            Tab(text: AppL10n.of(context).inputTextOnly),
           ],
         ),
         Expanded(
@@ -164,7 +165,7 @@ class _TextOnlyInputState extends State<_TextOnlyInput> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                '仅展示 TextField 输入',
+                AppL10n.of(context).textFieldOnlyHint,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 8),
@@ -188,8 +189,8 @@ class _TextOnlyInputState extends State<_TextOnlyInput> {
               Expanded(
                 child: TextField(
                   controller: _controller,
-                  decoration: const InputDecoration(
-                    hintText: '输入消息…',
+                  decoration: InputDecoration(
+                    hintText: ChatL10n.of(context).inputHint,
                     border: OutlineInputBorder(),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(

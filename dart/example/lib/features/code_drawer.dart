@@ -3,6 +3,7 @@
 // 每个特性定义一组 CodeSnippet，展示该特性用到的核心 API。
 
 import 'package:flutter/material.dart';
+import '../app_l10n.dart';
 
 /// 一段代码片段
 class CodeSnippet {
@@ -48,13 +49,13 @@ class CodeDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$featureName — API',
+                          AppL10n.of(context).codeDrawerTitle(featureName),
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          '核心接口调用',
+                          AppL10n.of(context).coreApiLabel,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onPrimaryContainer
                                 .withAlpha(179),

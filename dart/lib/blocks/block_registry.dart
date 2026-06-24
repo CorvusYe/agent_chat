@@ -3,6 +3,7 @@ import '../models/chat_block.dart';
 import '../models/exchange.dart';
 import '../bus/chat_bus.dart';
 import '../theme/chat_theme.dart';
+import '../l10n/chat_l10n.dart';
 
 /// BlockDef — 自定义 Block 类型的完整定义。
 ///
@@ -471,7 +472,7 @@ class _ConfirmGateState extends State<_ConfirmGate>
                 runSpacing: 4,
                 children: [
                   _CompactBtn(
-                    label: '允许',
+                    label: ChatL10n.of(context).btnAllow,
                     filled: true,
                     color: theme.accent,
                     onPressed: () => widget.bus.confirmTool(
@@ -482,7 +483,7 @@ class _ConfirmGateState extends State<_ConfirmGate>
                   ),
                   if (widget.block.canAlwaysAllow)
                     _CompactBtn(
-                      label: '始终允许',
+                      label: ChatL10n.of(context).btnAlwaysAllow,
                       filled: false,
                       color: theme.accent,
                       onPressed: () => widget.bus.confirmTool(
@@ -492,7 +493,7 @@ class _ConfirmGateState extends State<_ConfirmGate>
                       ),
                     ),
                   _CompactBtn(
-                    label: '取消',
+                    label: ChatL10n.of(context).btnCancel,
                     filled: false,
                     color: theme.textSecondary,
                     onPressed: () => widget.bus.cancelTool(

@@ -6,6 +6,7 @@ import '../bus/chat_bus.dart';
 import '../models/exchange.dart';
 import '../models/chat_block.dart';
 import '../theme/chat_theme.dart';
+import '../l10n/chat_l10n.dart';
 import 'exchange_widget.dart';
 import 'block_timeline_section.dart';
 import 'stats_bar.dart';
@@ -33,6 +34,7 @@ class ChatScreen extends StatefulWidget {
   final ChatTheme? theme;
   final Widget? loadingIndicator;
   final Widget? emptyPlaceholder;
+  final ChatL10n? l10n;
 
   const ChatScreen({
     super.key,
@@ -40,6 +42,7 @@ class ChatScreen extends StatefulWidget {
     this.theme,
     this.loadingIndicator,
     this.emptyPlaceholder,
+    this.l10n,
   });
 
   @override
@@ -187,7 +190,7 @@ class _ChatScreenState extends State<ChatScreen>
   Widget build(BuildContext context) {
     final chatTheme = widget.theme ?? ChatTheme.of(context);
 
-    return Theme(
+    Widget result = Theme(
       data: ThemeData(
         extensions: [chatTheme],
         brightness: Theme.of(context).brightness,
@@ -232,6 +235,11 @@ class _ChatScreenState extends State<ChatScreen>
         ),
       ),
     );
+
+    if (widget.l10n != null) {
+      result = ChatL10nScope(l10n: widget.l10n!, child: result);
+    }
+    return result;
   }
 
   Widget _buildMessages(ChatTheme theme) {
@@ -248,7 +256,7 @@ class _ChatScreenState extends State<ChatScreen>
         child:
             widget.emptyPlaceholder ??
             Text(
-              '发送一条消息开始对话',
+              ChatL10n.of(context).emptyChatHint,
               style: TextStyle(
                 color: theme.textTertiary,
                 fontSize: theme.fontSizeLg,
@@ -336,7 +344,7 @@ class _ChatScreenState extends State<ChatScreen>
           filled: true,
           fillColor: theme.inputFillColor(animValue),
           contentPadding: theme.inputContentPadding,
-          hintText: '输入消息…',
+          hintText: ChatL10n.of(context).inputHint,
           hintStyle: TextStyle(color: theme.textPlaceholder),
           enabledBorder: theme.inputUnderlineBorder(animValue),
           focusedBorder: theme.inputUnderlineBorder(animValue),
@@ -513,7 +521,7 @@ class _LastUserStickyHeader extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Text(
-                      '展开全部',
+                      ChatL10n.of(context).expandAll,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
@@ -555,7 +563,7 @@ class _LastUserStickyHeader extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '用户消息',
+                        ChatL10n.of(ctx).userMessageTitle,
                         style: TextStyle(
                           fontSize: theme.fontSizeXl,
                           fontWeight: FontWeight.w500,
@@ -686,7 +694,7 @@ class _QueuePopupContent extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    '待发送消息',
+                    ChatL10n.of(context).queueTitle,
                     style: TextStyle(
                       fontSize: theme.fontSizeLg,
                       fontWeight: FontWeight.w500,
@@ -715,7 +723,7 @@ class _QueuePopupContent extends StatelessWidget {
                   ? Padding(
                       padding: EdgeInsets.all(theme.spacingLg),
                       child: Text(
-                        '待发送队列为空',
+                        ChatL10n.of(context).queueEmpty,
                         style: TextStyle(
                           fontSize: theme.fontSizeSm,
                           color: theme.textTertiary,
