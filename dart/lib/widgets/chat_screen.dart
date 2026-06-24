@@ -321,7 +321,12 @@ class _ChatScreenState extends State<ChatScreen>
         groupSlivers.add(BlockTimelineSection(exchange: exchange, bus: bus));
       }
 
-      slivers.add(SliverMainAxisGroup(slivers: groupSlivers));
+      slivers.add(
+        SliverMainAxisGroup(
+          key: ValueKey('ex_${exchange.id}'),
+          slivers: groupSlivers,
+        ),
+      );
     }
     return slivers;
   }

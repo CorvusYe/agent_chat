@@ -332,21 +332,29 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
             !_trustedTools.contains(event.toolName) &&
             _globalAlwaysAllow != event.toolName &&
             !event.autoApproved) {
-          // 先 flush 当前批 blocks，让确认门可以渲染
+          // 先 flush 当前批 blocks
           _replaceFlushGroup(exchangeId, pendingBlocks);
           pendingBlocks = [];
+
+          // 如果 exchange 已被取消，跳过暂停和 waitingInput
+          final exIdxBefore = _exchanges.indexWhere((e) => e.id == exchangeId);
+          if (exIdxBefore != -1 &&
+              _exchanges[exIdxBefore].status == ExchangeStatus.cancelled) {
+            if (!_disposed) notifyListeners();
+            continue;
+          }
+
           _updateExchange(
             exchangeId,
             (ex) => ex.copyWith(status: ExchangeStatus.waitingInput),
           );
           if (!_disposed) notifyListeners();
+
           final completer = Completer<void>();
           _pendingConfirms[exchangeId] = completer;
           await completer.future;
 
           // 如果工具被取消，检查是否还有同级活动 block。
-          // 有 → 仅取消当前 block，同级继续运行；
-          // 无 → exchange 也设 cancelled。
           final exIdx = _exchanges.indexWhere((e) => e.id == exchangeId);
           if (exIdx != -1) {
             final groups = _exchanges[exIdx].groups;
@@ -367,6 +375,7 @@ class DefaultChatBus with ChangeNotifier implements ChatBus {
                   (ex) => ex.copyWith(status: ExchangeStatus.cancelled),
                 );
                 if (!_disposed) notifyListeners();
+                continue; // 已取消，不再恢复 processing
               }
             }
           }

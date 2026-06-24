@@ -7,6 +7,9 @@ import '../theme/chat_theme.dart';
 import '../blocks/block_registry.dart';
 import '../l10n/chat_l10n.dart';
 import 'exchange_widget.dart';
+import 'block/block_header.dart';
+import 'block/block_content.dart';
+import 'block/block_anim.dart';
 
 /// 单个 exchange 的 block 时间轴区域（Sliver 版本）。
 ///
@@ -320,110 +323,5 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
 }
 
 // ═══════════════════════════════════════════════════════
-//  BlockHeader — 统一的时间轴头部 Row
-// ═══════════════════════════════════════════════════════
-
-/// 时间轴 block 头部。
-///
-/// 布局：Row(gutter + dot) + Expanded(header)
-class BlockHeader extends StatelessWidget {
-  final Widget dot;
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-  final bool showChevron;
-  final bool expanded;
-  final String? subtitle;
-  final DateTime? startTime;
-  final Duration? elapsed;
-
-  const BlockHeader({
-    super.key,
-    required this.dot,
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.onTap,
-    this.showChevron = true,
-    this.expanded = false,
-    this.subtitle,
-    this.startTime,
-    this.elapsed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = ChatTheme.of(context);
-    return Row(
-      children: [
-        SizedBox(
-          width: theme.timelineGutter,
-          child: Center(child: dot),
-        ),
-        Expanded(
-          child: InkWell(
-            onTap: onTap,
-            child: buildBlockHeader(
-              context: context,
-              icon: icon,
-              label: label,
-              color: color,
-              theme: theme,
-              showChevron: showChevron,
-              expanded: expanded,
-              subtitle: subtitle,
-              startTime: startTime,
-              elapsed: elapsed,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════
 //  BlockContent — 统一的时间轴内容 Stack
 // ═══════════════════════════════════════════════════════
-
-/// 时间轴 block 内容区。
-///
-/// 布局：Stack(竖线居中于 gutter + content)
-/// 用 Stack 而非 Row：竖线通过 Positioned(top:0, bottom:0) 拉伸到与内容等高。
-class BlockContent extends StatelessWidget {
-  final Color lineColor;
-  final Widget child;
-
-  const BlockContent({super.key, required this.lineColor, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = ChatTheme.of(context);
-    return Padding(
-      padding: theme.blockPadding,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: SizedBox(
-              width: theme.timelineGutter,
-              child: Center(
-                child: Container(
-                  width: theme.timelineLineWidth,
-                  color: lineColor,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: theme.timelineGutter),
-            child: child,
-          ),
-        ],
-      ),
-    );
-  }
-}
