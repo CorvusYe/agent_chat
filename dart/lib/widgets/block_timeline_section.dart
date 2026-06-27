@@ -8,7 +8,6 @@ import '../blocks/block_registry.dart';
 import '../l10n/chat_l10n.dart';
 import 'block/block_utils.dart';
 import 'block/block_header.dart';
-import 'block/block_content.dart';
 import 'block/block_anim.dart';
 
 /// 单个 exchange 的 block 时间轴区域（Sliver 版本）。
@@ -308,7 +307,8 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
           constraints: BoxConstraints(
             maxHeight: viewportHeight * theme.contentMaxHeightFactor,
           ),
-          child: SingleChildScrollView(
+          child: _AutoScrollContent(
+            autoScroll: _isLatestBlock(block),
             child: BlockRegistry.build(
               context,
               block,
@@ -325,3 +325,93 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
 // ═══════════════════════════════════════════════════════
 //  BlockContent — 统一的时间轴内容 Stack
 // ═══════════════════════════════════════════════════════
+
+/// 时间轴 block 内容区。
+///
+/// 布局：Stack(竖线居中于 gutter + content)
+class BlockContent extends StatelessWidget {
+  final Color lineColor;
+  final Widget child;
+
+  const BlockContent({super.key, required this.lineColor, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ChatTheme.of(context);
+    return Padding(
+      padding: theme.blockPadding,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: SizedBox(
+              width: theme.timelineGutter,
+              child: Center(
+                child: Container(
+                  width: theme.timelineLineWidth,
+                  color: lineColor,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: theme.timelineGutter),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  _AutoScrollContent — 内容溢出时自动滚到底部
+// ═══════════════════════════════════════════════════════
+
+class _AutoScrollContent extends StatefulWidget {
+  final bool autoScroll;
+  final Widget child;
+
+  const _AutoScrollContent({required this.autoScroll, required this.child});
+
+  @override
+  State<_AutoScrollContent> createState() => _AutoScrollContentState();
+}
+
+class _AutoScrollContentState extends State<_AutoScrollContent> {
+  final ScrollController _ctrl = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleScrollIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_AutoScrollContent old) {
+    super.didUpdateWidget(old);
+    _scheduleScrollIfNeeded();
+  }
+
+  void _scheduleScrollIfNeeded() {
+    if (!widget.autoScroll) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_ctrl.hasClients) {
+        _ctrl.jumpTo(_ctrl.position.maxScrollExtent);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(controller: _ctrl, child: widget.child);
+  }
+}
