@@ -1,7 +1,8 @@
 name: agent_chat
 description: "A Flutter UI library for agent chat interfaces."
-publish_to: 'https://github.com/CorvusYe/agent_chat'
 version: 0.1.0
+repository: https://github.com/CorvusYe/agent_chat
+homepage: https://github.com/CorvusYe/agent_chat
 
 environment:
   sdk: ^3.12.0
