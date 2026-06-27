@@ -8,6 +8,7 @@ import '../blocks/block_registry.dart';
 import '../l10n/chat_l10n.dart';
 import 'block/block_utils.dart';
 import 'block/block_header.dart';
+import 'block/block_content.dart';
 import 'block/block_anim.dart';
 
 /// 单个 exchange 的 block 时间轴区域（Sliver 版本）。
@@ -317,50 +318,6 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-//  BlockContent — 统一的时间轴内容 Stack
-// ═══════════════════════════════════════════════════════
-
-/// 时间轴 block 内容区。
-///
-/// 布局：Stack(竖线居中于 gutter + content)
-class BlockContent extends StatelessWidget {
-  final Color lineColor;
-  final Widget child;
-
-  const BlockContent({super.key, required this.lineColor, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = ChatTheme.of(context);
-    return Padding(
-      padding: theme.blockPadding,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: SizedBox(
-              width: theme.timelineGutter,
-              child: Center(
-                child: Container(
-                  width: theme.timelineLineWidth,
-                  color: lineColor,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: theme.timelineGutter),
-            child: child,
-          ),
-        ],
       ),
     );
   }
