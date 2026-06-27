@@ -38,6 +38,9 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   /// Blocks the user manually collapsed — override auto-expand.
   final Set<String> _manuallyCollapsedKeys = {};
 
+  ScrollPosition? _scrollPosition;
+  bool _contentOverflows = false;
+
   List<ChatBlock> get _allBlocks =>
       widget.exchange.groups.expand((g) => g.blocks).toList();
 
@@ -118,13 +121,44 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   }
 
   // ═══════════════════════════════════════════════════════
+  //  Scroll overflow 监听
+  // ═══════════════════════════════════════════════════════
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final pos = context.findAncestorStateOfType<ScrollableState>()?.position;
+    if (pos != _scrollPosition) {
+      _scrollPosition?.removeListener(_onScrollChanged);
+      _scrollPosition = pos;
+      _scrollPosition?.addListener(_onScrollChanged);
+      _onScrollChanged();
+    }
+  }
+
+  void _onScrollChanged() {
+    if (_scrollPosition == null) return;
+    final overflows = _scrollPosition!.maxScrollExtent > 0.5;
+    if (overflows != _contentOverflows) {
+      setState(() => _contentOverflows = overflows);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollPosition?.removeListener(_onScrollChanged);
+    super.dispose();
+  }
+
+  // ═══════════════════════════════════════════════════════
   //  Build
   // ═══════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    final viewportHeight = MediaQuery.of(context).size.height;
+    final defaultCap =
+        MediaQuery.of(context).size.height * theme.contentMaxHeightFactor;
 
     final slivers = <Widget>[];
 
@@ -137,6 +171,13 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       final collapseKey = '${widget.exchange.id}_${block.id}';
       final collapsed = _isCollapsed(block);
       final sub = collapsed ? _firstParagraph(block) : null;
+
+      // 限制策略：
+      // 有溢出且不是当前最新块 → 限（61.8%），否则不限
+      final isLatest = _isLatestBlock(block);
+      final maxContentHeight = _contentOverflows && !isLatest
+          ? defaultCap
+          : double.infinity;
 
       final innerSlivers = <Widget>[
         SliverPinnedHeader(
@@ -157,7 +198,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
               context: context,
               block: block,
               theme: theme,
-              viewportHeight: viewportHeight,
+              maxContentHeight: maxContentHeight,
             ),
           ),
         );
@@ -197,7 +238,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
               context: context,
               block: null,
               theme: theme,
-              viewportHeight: 0,
+              maxContentHeight: 0,
             ),
           ),
         );
@@ -274,11 +315,12 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
 
   /// 构建 block 或 error 的内容。
   /// [block] 不为 null → animated block content；null → static error content。
+  /// [maxContentHeight] 为 -1 时表示不限高。
   Widget _buildContent({
     required BuildContext context,
     required ChatBlock? block,
     required ChatTheme theme,
-    required double viewportHeight,
+    required double maxContentHeight,
   }) {
     if (block == null) {
       final isLight = theme.bgPrimary.computeLuminance() > 0.5;
@@ -305,9 +347,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       builder: (context, anim) => BlockContent(
         lineColor: anim.applyBreathing(dotColorFor(block, theme)),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: viewportHeight * theme.contentMaxHeightFactor,
-          ),
+          constraints: BoxConstraints(maxHeight: maxContentHeight),
           child: _AutoScrollContent(
             autoScroll: _isLatestBlock(block),
             child: BlockRegistry.build(
