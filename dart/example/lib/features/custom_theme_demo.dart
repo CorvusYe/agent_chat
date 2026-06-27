@@ -14,6 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:agent_chat/agent_chat.dart';
 import '../app_l10n.dart';
+import '../main.dart';
 
 // 内置主题已移至 ChatThemes.neumorphicLight / neumorphicDark
 
@@ -30,7 +31,6 @@ class CustomThemeDemo extends StatefulWidget {
 
 class _CustomThemeDemoState extends State<CustomThemeDemo> {
   late final ChatBus bus;
-  bool _dark = false;
 
   @override
   void initState() {
@@ -211,61 +211,57 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
 
   @override
   Widget build(BuildContext context) {
-    final chatTheme = _dark
+    final appState = ShowcaseApp.of(context);
+    final isDark = appState?.themeMode == ThemeMode.dark;
+    final chatTheme = isDark
         ? ChatThemes.neumorphicDark
         : ChatThemes.neumorphicLight;
-    final neu = NeuTheme(chatTheme);
 
-    return Column(
-      children: [
-        // ── 控制面板（Neumorphic 凸起效果） ──
-        NeuBox(
-          style: NeuStyle.flat,
-          borderRadius: 0,
-          color: chatTheme.bgSurface,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Icon(Icons.auto_awesome, size: 16, color: chatTheme.accent),
-                const SizedBox(width: 8),
-                Text(
-                  AppL10n.of(context).themeDemoTitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
+    return Theme(
+      data: Theme.of(context).copyWith(
+        brightness: isDark ? Brightness.dark : Brightness.light,
+        extensions: [chatTheme],
+      ),
+      child: Column(
+        children: [
+          NeuBox(
+            style: NeuStyle.flat,
+            borderRadius: 0,
+            color: chatTheme.bgSurface,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, size: 16, color: chatTheme.accent),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppL10n.of(context).themeDemoTitle,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                _NeuToggle(
-                  value: _dark,
-                  onChanged: (v) => setState(() => _dark = v),
-                  neu: neu,
-                ),
-                const Spacer(),
-                // Neumorphic 图标按钮（微凸起）
-                _NeuIconButton(
-                  icon: Icons.info_outline,
-                  tooltip: AppL10n.of(context).neuTooltip,
-                  neu: neu,
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  _NeuToggle(
+                    value: isDark,
+                    onChanged: (v) => appState?.setThemeMode(
+                      v ? ThemeMode.dark : ThemeMode.light,
+                    ),
+                  ),
+                  const Spacer(),
+                  _NeuIconButton(
+                    icon: Icons.info_outline,
+                    tooltip: AppL10n.of(context).neuTooltip,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const Divider(height: 1, color: Colors.transparent),
-        // ── ChatScreen 预览 ──
-        Expanded(
-          child: Theme(
-            data: ThemeData(
-              brightness: _dark ? Brightness.dark : Brightness.light,
-              extensions: [chatTheme],
-            ),
-            child: ChatScreen(bus: bus),
-          ),
-        ),
-      ],
+          const Divider(height: 1, color: Colors.transparent),
+          Expanded(child: ChatScreen(bus: bus)),
+        ],
+      ),
     );
   }
 }
@@ -277,16 +273,12 @@ class _CustomThemeDemoState extends State<CustomThemeDemo> {
 class _NeuToggle extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
-  final NeuTheme neu;
 
-  const _NeuToggle({
-    required this.value,
-    required this.onChanged,
-    required this.neu,
-  });
+  const _NeuToggle({required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
+    final neu = NeuTheme.of(context);
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: NeuBox(
@@ -332,16 +324,12 @@ class _NeuToggle extends StatelessWidget {
 class _NeuIconButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
-  final NeuTheme neu;
 
-  const _NeuIconButton({
-    required this.icon,
-    required this.tooltip,
-    required this.neu,
-  });
+  const _NeuIconButton({required this.icon, required this.tooltip});
 
   @override
   Widget build(BuildContext context) {
+    final neu = NeuTheme.of(context);
     return Tooltip(
       message: tooltip,
       child: NeuBox(
