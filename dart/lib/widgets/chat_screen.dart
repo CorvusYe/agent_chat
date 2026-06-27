@@ -318,7 +318,13 @@ class _ChatScreenState extends State<ChatScreen>
             SliverToBoxAdapter(child: SizedBox(height: theme.timelineTopGap)),
           );
         }
-        groupSlivers.add(BlockTimelineSection(exchange: exchange, bus: bus));
+        groupSlivers.add(
+          BlockTimelineSection(
+            exchange: exchange,
+            bus: bus,
+            scrollController: _scrollCtrl,
+          ),
+        );
       }
 
       slivers.add(

@@ -20,11 +20,13 @@ import 'block/block_anim.dart';
 class BlockTimelineSection extends StatefulWidget {
   final Exchange exchange;
   final ChatBus bus;
+  final ScrollController scrollController;
 
   const BlockTimelineSection({
     super.key,
     required this.exchange,
     required this.bus,
+    required this.scrollController,
   });
 
   @override
@@ -38,7 +40,6 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   /// Blocks the user manually collapsed — override auto-expand.
   final Set<String> _manuallyCollapsedKeys = {};
 
-  ScrollPosition? _scrollPosition;
   bool _contentOverflows = false;
 
   List<ChatBlock> get _allBlocks =>
@@ -121,32 +122,34 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   }
 
   // ═══════════════════════════════════════════════════════
-  //  Scroll overflow 监听
+  //  Scroll overflow 监听（通过外层 ScrollController）
   // ═══════════════════════════════════════════════════════
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final pos = context.findAncestorStateOfType<ScrollableState>()?.position;
-    if (pos != _scrollPosition) {
-      _scrollPosition?.removeListener(_onScrollChanged);
-      _scrollPosition = pos;
-      _scrollPosition?.addListener(_onScrollChanged);
-      _onScrollChanged();
-    }
+  void initState() {
+    super.initState();
+    widget.scrollController.addListener(_onScrollChanged);
+    // 首次监听可能在 attach 后未触发，主动检测一次
+    WidgetsBinding.instance.addPostFrameCallback((_) => _detectOverflow());
   }
 
   void _onScrollChanged() {
-    if (_scrollPosition == null) return;
-    final overflows = _scrollPosition!.maxScrollExtent > 0.5;
-    if (overflows != _contentOverflows) {
-      setState(() => _contentOverflows = overflows);
+    // 只在有布局信息时检查
+    if (!widget.scrollController.hasClients) return;
+    if (_contentOverflows) return; // 已经溢出，不再清除
+    _detectOverflow();
+  }
+
+  void _detectOverflow() {
+    if (!widget.scrollController.hasClients) return;
+    if (widget.scrollController.position.maxScrollExtent > 0.5) {
+      setState(() => _contentOverflows = true);
     }
   }
 
   @override
   void dispose() {
-    _scrollPosition?.removeListener(_onScrollChanged);
+    widget.scrollController.removeListener(_onScrollChanged);
     super.dispose();
   }
 
@@ -172,12 +175,8 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       final collapsed = _isCollapsed(block);
       final sub = collapsed ? _firstParagraph(block) : null;
 
-      // 限制策略：
-      // 有溢出且不是当前最新块 → 限（61.8%），否则不限
-      final isLatest = _isLatestBlock(block);
-      final maxContentHeight = _contentOverflows && !isLatest
-          ? defaultCap
-          : double.infinity;
+      // 有溢出 → 全限 61.8%；无溢出 → 不限
+      final maxContentHeight = _contentOverflows ? defaultCap : double.infinity;
 
       final innerSlivers = <Widget>[
         SliverPinnedHeader(
