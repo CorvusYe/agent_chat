@@ -20,13 +20,11 @@ import 'block/block_anim.dart';
 class BlockTimelineSection extends StatefulWidget {
   final Exchange exchange;
   final ChatBus bus;
-  final ScrollController scrollController;
 
   const BlockTimelineSection({
     super.key,
     required this.exchange,
     required this.bus,
-    required this.scrollController,
   });
 
   @override
@@ -39,8 +37,6 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
 
   /// Blocks the user manually collapsed — override auto-expand.
   final Set<String> _manuallyCollapsedKeys = {};
-
-  bool _contentOverflows = false;
 
   List<ChatBlock> get _allBlocks =>
       widget.exchange.groups.expand((g) => g.blocks).toList();
@@ -122,46 +118,13 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
   }
 
   // ═══════════════════════════════════════════════════════
-  //  Scroll overflow 监听（通过外层 ScrollController）
-  // ═══════════════════════════════════════════════════════
-
-  @override
-  void initState() {
-    super.initState();
-    widget.scrollController.addListener(_onScrollChanged);
-    // 首次监听可能在 attach 后未触发，主动检测一次
-    WidgetsBinding.instance.addPostFrameCallback((_) => _detectOverflow());
-  }
-
-  void _onScrollChanged() {
-    // 只在有布局信息时检查
-    if (!widget.scrollController.hasClients) return;
-    if (_contentOverflows) return; // 已经溢出，不再清除
-    _detectOverflow();
-  }
-
-  void _detectOverflow() {
-    if (!widget.scrollController.hasClients) return;
-    if (widget.scrollController.position.maxScrollExtent > 0.5) {
-      setState(() => _contentOverflows = true);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.scrollController.removeListener(_onScrollChanged);
-    super.dispose();
-  }
-
-  // ═══════════════════════════════════════════════════════
   //  Build
   // ═══════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
     final theme = ChatTheme.of(context);
-    final defaultCap =
-        MediaQuery.of(context).size.height * theme.contentMaxHeightFactor;
+    final viewportHeight = MediaQuery.of(context).size.height;
 
     final slivers = <Widget>[];
 
@@ -174,9 +137,6 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       final collapseKey = '${widget.exchange.id}_${block.id}';
       final collapsed = _isCollapsed(block);
       final sub = collapsed ? _firstParagraph(block) : null;
-
-      // 有溢出 → 全限 61.8%；无溢出 → 不限
-      final maxContentHeight = _contentOverflows ? defaultCap : double.infinity;
 
       final innerSlivers = <Widget>[
         SliverPinnedHeader(
@@ -197,7 +157,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
               context: context,
               block: block,
               theme: theme,
-              maxContentHeight: maxContentHeight,
+              viewportHeight: viewportHeight,
             ),
           ),
         );
@@ -237,7 +197,7 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
               context: context,
               block: null,
               theme: theme,
-              maxContentHeight: 0,
+              viewportHeight: 0,
             ),
           ),
         );
@@ -314,12 +274,11 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
 
   /// 构建 block 或 error 的内容。
   /// [block] 不为 null → animated block content；null → static error content。
-  /// [maxContentHeight] 为 -1 时表示不限高。
   Widget _buildContent({
     required BuildContext context,
     required ChatBlock? block,
     required ChatTheme theme,
-    required double maxContentHeight,
+    required double viewportHeight,
   }) {
     if (block == null) {
       final isLight = theme.bgPrimary.computeLuminance() > 0.5;
@@ -346,7 +305,9 @@ class _BlockTimelineSectionState extends State<BlockTimelineSection> {
       builder: (context, anim) => BlockContent(
         lineColor: anim.applyBreathing(dotColorFor(block, theme)),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxContentHeight),
+          constraints: BoxConstraints(
+            maxHeight: viewportHeight * theme.contentMaxHeightFactor,
+          ),
           child: _AutoScrollContent(
             autoScroll: _isLatestBlock(block),
             child: BlockRegistry.build(
